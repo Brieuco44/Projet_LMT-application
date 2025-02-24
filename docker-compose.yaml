@@ -1,0 +1,39 @@
+networks:
+  mynetwork: {}
+
+volumes:
+  db_data: {}
+
+services:
+  mysqlcontainer:
+    image: mysql:latest
+    networks:
+      - mynetwork
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    networks:
+      - mynetwork
+    container_name: pma
+    links:
+      - mysqlcontainer
+    environment:
+      PMA_HOST: mysqlcontainer
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+  
