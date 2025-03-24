@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription
+{% endblock %}
+
+{% block body %}
+	<div class="justify-center items-center flex m-auto">
+		<fieldset class="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">
+			<legend class="fieldset-legend">Inscription</legend>
+			{{ form_errors(registrationForm) }}
+			<div class="flex flex-col">
+				{{ form_start(registrationForm) }}
+				{{ form_row(registrationForm.email, {
+                attr: {placeholder: 'Email', class: "input  my-2"}
+            }) }}
+				{{ form_row(registrationForm.plainPassword, {
+                attr: {placeholder: 'Mot de passe', class: "input  my-2"}
+            }) }}
+				<div class="flex justify-center">
+					<button type="submit" class="btn btn-wide btn-neutral mt-4">Inscription</button>
+				</div>
+			</div>
+			{{ form_end(registrationForm) }}
+		</fieldset>
+	</div>
+{% endblock %}
