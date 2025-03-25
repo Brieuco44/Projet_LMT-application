@@ -5,9 +5,9 @@
 
 {% block body %}
 	<div class="justify-center items-center flex m-auto">
+		{{ form_errors(registrationForm) }}
 		<fieldset class="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">
 			<legend class="fieldset-legend">Inscription</legend>
-			{{ form_errors(registrationForm) }}
 			<div class="flex flex-col">
 				{{ form_start(registrationForm) }}
 				{{ form_row(registrationForm.email, {
@@ -19,8 +19,9 @@
 				<div class="flex justify-center">
 					<button type="submit" class="btn btn-wide btn-neutral mt-4">Inscription</button>
 				</div>
+				{{ form_row(registrationForm._token) }}
 			</div>
-			{{ form_end(registrationForm) }}
 		</fieldset>
+		{{ form_end(registrationForm) }}
 	</div>
 {% endblock %}
