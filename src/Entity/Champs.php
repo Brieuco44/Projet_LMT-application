@@ -24,8 +24,6 @@ class Champs
     #[ORM\ManyToOne(inversedBy: 'champs')]
     private ?typeChamps $typeChamps = null;
 
-    #[ORM\ManyToOne(inversedBy: 'champs')]
-    private ?typeLivrable $typeLivrable = null;
 
     /**
      * @var Collection<int, Controle>
@@ -35,6 +33,9 @@ class Champs
 
     #[ORM\Column]
     private ?int $page = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $question = null;
 
     public function __construct()
     {
@@ -82,18 +83,6 @@ class Champs
         return $this;
     }
 
-    public function getTypeLivrable(): ?typeLivrable
-    {
-        return $this->typeLivrable;
-    }
-
-    public function setTypeLivrable(?typeLivrable $typeLivrable): static
-    {
-        $this->typeLivrable = $typeLivrable;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, Controle>
      */
@@ -132,6 +121,18 @@ class Champs
     public function setPage(int $page): static
     {
         $this->page = $page;
+
+        return $this;
+    }
+
+    public function getQuestion(): ?string
+    {
+        return $this->question;
+    }
+
+    public function setQuestion(string $question): static
+    {
+        $this->question = $question;
 
         return $this;
     }

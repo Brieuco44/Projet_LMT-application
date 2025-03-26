@@ -33,10 +33,17 @@ class TypeLivrable
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'typeLivrable')]
     private Collection $documents;
 
+    /**
+     * @var Collection<int, Zone>
+     */
+    #[ORM\OneToMany(targetEntity: Zone::class, mappedBy: 'typeLivrable')]
+    private Collection $zones;
+
     public function __construct()
     {
         $this->champs = new ArrayCollection();
         $this->documents = new ArrayCollection();
+        $this->zones = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -122,6 +129,36 @@ class TypeLivrable
             // set the owning side to null (unless already changed)
             if ($document->getTypeLivrable() === $this) {
                 $document->setTypeLivrable(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Zone>
+     */
+    public function getZones(): Collection
+    {
+        return $this->zones;
+    }
+
+    public function addZone(Zone $zone): static
+    {
+        if (!$this->zones->contains($zone)) {
+            $this->zones->add($zone);
+            $zone->setTypeLivrable($this);
+        }
+
+        return $this;
+    }
+
+    public function removeZone(Zone $zone): static
+    {
+        if ($this->zones->removeElement($zone)) {
+            // set the owning side to null (unless already changed)
+            if ($zone->getTypeLivrable() === $this) {
+                $zone->setTypeLivrable(null);
             }
         }
 
