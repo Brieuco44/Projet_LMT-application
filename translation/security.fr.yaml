@@ -1,0 +1,26 @@
+# Mauvais identifiants
+Invalid credentials.: "Email ou mot de passe incorrect."
+
+# Jeton CSRF invalide
+Invalid CSRF token.: "Le jeton CSRF est invalide. Veuillez réessayer."
+
+# L'utilisateur n'a pas été trouvé (email inexistant)
+Username could not be found.: "Aucun compte trouvé pour cet email."
+
+# L'utilisateur a été désactivé
+User account is disabled.: "Ce compte est désactivé."
+
+# L'utilisateur a expiré (obsolète ou désactivé via les rôles)
+User account has expired.: "Le compte a expiré."
+
+# Le compte est verrouillé (lock)
+User account is locked.: "Le compte est verrouillé."
+
+# Les informations d'identification sont expirées
+User credentials have expired.: "Les identifiants sont expirés."
+
+# Mot de passe non conforme ou invalide
+The presented password is invalid.: "Mot de passe incorrect."
+
+# Si tu utilises le composant de vérification d'email (UserChecker)
+Email could not be verified.: "Votre adresse email n’a pas été vérifiée."

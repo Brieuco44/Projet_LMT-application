@@ -4,9 +4,6 @@
 {% endblock %}
 
 {% block body %}
-	{% if error %}
-		<div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-	{% endif %}
 	{% if app.user is null %}
 		<div class="justify-center items-center flex m-auto">
 			<fieldset class="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">
@@ -16,6 +13,9 @@
 						<input type="email" value="{{ last_username }}" name="_username" id="username" class=" input my-2" autocomplete="email" required autofocus>
 						<input type="password" name="_password" id="password" class="input my-2" autocomplete="current-password" required>
 						<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+						{% if error %}
+							<div class="alert alert-error alert-dash">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+						{% endif %}
 						<div class="flex justify-center">
 							<button type="submit" class="btn btn-wide btn-neutral mt-4">Connexion</button>
 						</div>
