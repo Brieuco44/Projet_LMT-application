@@ -18,6 +18,7 @@
         "symfony/flex": "v2.5.0",
         "symfony/form": "v7.2.4",
         "symfony/framework-bundle": "v7.2.4",
+        "symfony/mime": "7.2.*",
         "symfony/runtime": "v7.2.3",
         "symfony/security-bundle": "v7.2.3",
         "symfony/security-csrf": "7.2.*",

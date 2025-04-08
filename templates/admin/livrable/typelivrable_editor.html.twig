@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin
+{% endblock %}
+
+{% block body %}
+	<h1 class="text-2xl font-bold mb-4">Créer un modèle PDF</h1>
+    <pre>
+        {{ dump(typelivrable) }}
+    </pre>
+	{% if typelivrable %}
+		<div class="grid grid-cols-3 gap-4 mt-8" data-controller="pdf-editor" data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typelivrable.path) }}">
+
+			<div class="col-span-2 border">
+				<canvas id="pdf-canvas" class="border w-full h-auto"></canvas>
+			</div>
+
+			<div>
+				<turbo-frame
+					id="zone_form_frame">{# Le formulaire d'ajout de zone s'affichera ici dynamiquement #}
+				</turbo-frame>
+			</div>
+
+		</div>
+	{% else %}
+		<turbo-frame id="upload_frame">
+			{{ include('admin/livrable/_form_upload.html.twig', { form: uploadForm }) }}
+		</turbo-frame>
+	{% endif %}
+{% endblock %}

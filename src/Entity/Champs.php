@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\ChampsRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\TypeChamps;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ChampsRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: ChampsRepository::class)]
 class Champs
@@ -22,7 +23,7 @@ class Champs
     private array $zone = [];
 
     #[ORM\ManyToOne(inversedBy: 'champs')]
-    private ?typeChamps $typeChamps = null;
+    private ?TypeChamps $typeChamps = null;
 
 
     /**
@@ -71,12 +72,12 @@ class Champs
         return $this;
     }
 
-    public function getTypeChamps(): ?typeChamps
+    public function getTypeChamps(): ?TypeChamps
     {
         return $this->typeChamps;
     }
 
-    public function setTypeChamps(?typeChamps $typeChamps): static
+    public function setTypeChamps(?TypeChamps $typeChamps): static
     {
         $this->typeChamps = $typeChamps;
 
