@@ -1,4 +1,31 @@
+<div class="w-full bg-base-100 p-2">
+    <div class="flex items-center justify-center relative">
+        <div class="absolute right-4">
+            {% if app.user %}
+                <button class="btn btn-circle btn-ghost" popovertarget="popover-1" style="anchor-name:--anchor-1">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            {% endif %}
+        </div>
+        <div class="w-48">
+            <img class="img mx-auto" src="/images/logo-haute-def-catalys.jpeg" alt="">
+        </div>
+    </div>
 
-<div class="flex justify-center">
-    <img class="img w-48 mb-5" src="/images/logo-haute-def-catalys.jpeg" alt="">
+    <ul class="dropdown dropdown-end menu w-52 rounded-box bg-base-200 shadow-sm" popover id="popover-1" style="position-anchor:--anchor-1">
+        {% if app.user and app.user.isAdmin() %}
+            <li>
+                <a href='{{ path('app_admin') }}'>
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    Admin
+                </a>
+            </li>
+        {% endif %}
+        <li>
+            <a href='{{ path('app_logout') }}' class="text-error">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Deconnexion
+            </a>
+        </li>
+    </ul>
 </div>
