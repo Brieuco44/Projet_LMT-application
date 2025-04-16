@@ -24,7 +24,7 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/ajoutLivrable', name: 'app_ajoutLivrable')]
+    #[Route('/admin/livrable/upload', name: 'app_ajoutLivrable')]
     #[IsGranted('ROLE_ADMIN')]
     public function ajoutLivrable(Request $request, SluggerInterface $slugger, EntityManagerInterface $entityManager): Response
     {
@@ -33,40 +33,47 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $pdfFile = $form->get('pdf')->getData();
-            if ($pdfFile) {
-                $filename = $slugger->slug(pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME))
-                    . '-' . uniqid() . '.' . $pdfFile->guessExtension();
+            try {
+                $pdfFile = $form->get('pdf')->getData();
+                if ($pdfFile) {
+                    $filename = $slugger->slug(pathinfo($pdfFile->getClientOriginalName(), PATHINFO_FILENAME))
+                        . '-' . uniqid() . '.' . $pdfFile->guessExtension();
 
-                // Déplace le fichier dans le répertoire de destination
-                $pdfFile->move($this->getParameter('pdf_directory'), $filename);
-                $typelivrable->setPath($filename);
-                $typelivrable->setNom($form->get('nom')->getData());
+                    // Déplace le fichier dans le répertoire de destination
+                    $pdfFile->move($this->getParameter('pdf_directory'), $filename);
+                    $typelivrable->setPath($filename);
+                    $typelivrable->setNom($form->get('nom')->getData());
+                }
+
+                $entityManager->persist($typelivrable);
+                $entityManager->flush();
+
+                return $this->redirectToRoute('admin_typelivrable_parametrage', [
+                    'id' => $typelivrable->getId(),
+                ]);
+            } catch (\Throwable $th) {
+                $this->addFlash('error', 'Une erreur est survenue lors de l\'ajout du livrable.');
+                return $this->redirectToRoute('app_ajoutLivrable');
             }
-
-            $entityManager->persist($typelivrable);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('admin_typelivrable_show', [
-                'id' => $typelivrable->getId(),
-            ]);
         }
 
-        return $this->render('admin/livrable/typelivrable_editor.html.twig', [
-            'uploadForm' => $form->createView(),
-            'typelivrable' => null,
+        return $this->render('admin/livrable/ajoutLivrable.html.twig', [
+            'uploadForm' => $form,
         ]);
     }
 
-
-    #[Route('/admin/ajoutLivrable/{id}', name: 'admin_typelivrable_show')]
+    #[Route('/admin/livrable/{id}/parametrage', name: 'admin_typelivrable_parametrage')]
     #[IsGranted('ROLE_ADMIN')]
-    public function showEditor(Typelivrable $typelivrable): Response
+    public function typelivrableParametrage(int $id, TypeLivrableRepository $repo): Response
     {
-        $form = $this->createForm(TypelivrableType::class);
-        return $this->render('admin/typelivrable_editor.html.twig', [
-            'uploadForm' => $form->createView(),
-            'typelivrable' => $typelivrable,
+        $typeLivrable = $repo->find($id);
+    
+        if (!$typeLivrable) {
+            throw $this->createNotFoundException('livrable non trouvé.');
+        }
+    
+        return $this->render('admin/livrable/parametrage.html.twig', [
+            'typeLivrable' => $typeLivrable,
         ]);
     }
 }

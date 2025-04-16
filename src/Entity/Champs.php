@@ -19,12 +19,8 @@ class Champs
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
-    #[ORM\Column]
-    private array $zone = [];
-
     #[ORM\ManyToOne(inversedBy: 'champs')]
     private ?TypeChamps $typeChamps = null;
-
 
     /**
      * @var Collection<int, Controle>
@@ -37,6 +33,9 @@ class Champs
 
     #[ORM\Column(length: 255)]
     private ?string $question = null;
+
+    #[ORM\ManyToOne(inversedBy: 'champs')]
+    private ?zone $zone = null;
 
     public function __construct()
     {
@@ -56,18 +55,6 @@ class Champs
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getZone(): array
-    {
-        return $this->zone;
-    }
-
-    public function setZone(array $zone): static
-    {
-        $this->zone = $zone;
 
         return $this;
     }
@@ -134,6 +121,18 @@ class Champs
     public function setQuestion(string $question): static
     {
         $this->question = $question;
+
+        return $this;
+    }
+
+    public function getZone(): ?zone
+    {
+        return $this->zone;
+    }
+
+    public function setZone(?zone $zone): static
+    {
+        $this->zone = $zone;
 
         return $this;
     }

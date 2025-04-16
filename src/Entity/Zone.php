@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ZoneRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ZoneRepository::class)]
@@ -24,6 +26,17 @@ class Zone
 
     #[ORM\ManyToOne(inversedBy: 'zones')]
     private ?TypeLivrable $typeLivrable = null;
+
+    /**
+     * @var Collection<int, Champs>
+     */
+    #[ORM\OneToMany(targetEntity: Champs::class, mappedBy: 'zone_id')]
+    private Collection $champs;
+
+    public function __construct()
+    {
+        $this->champs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -74,6 +87,36 @@ class Zone
     public function setTypeLivrable(?TypeLivrable $typeLivrable): static
     {
         $this->typeLivrable = $typeLivrable;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Champs>
+     */
+    public function getChamps(): Collection
+    {
+        return $this->champs;
+    }
+
+    public function addChamp(Champs $champ): static
+    {
+        if (!$this->champs->contains($champ)) {
+            $this->champs->add($champ);
+            $champ->setZone($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChamp(Champs $champ): static
+    {
+        if ($this->champs->removeElement($champ)) {
+            // set the owning side to null (unless already changed)
+            if ($champ->getZone() === $this) {
+                $champ->setZone(null);
+            }
+        }
 
         return $this;
     }

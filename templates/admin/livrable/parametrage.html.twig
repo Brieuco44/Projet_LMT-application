@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin
+{% endblock %}
+
+{% block javascripts %}
+	{{ encore_entry_script_tags('pdf-editor') }}
+
+{% endblock %}
+
+{% block body %}
+	<h1 class="text-2xl font-bold mb-4">Paramétrage du livrable :
+		{{ typeLivrable.nom }}</h1>
+
+	<div {{ stimulus_controller('hello') }}></div>
+	<div
+		class="grid grid-cols-5 gap-4">
+		<!-- Partie gauche : PDF + sélection -->
+		<div class="col-span-2 ">
+			<div id="pdf-editor" class=" border border-secondary" data-url="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}"></div>
+			<div class="flex  justify-center mt-2">
+				<div class="join">
+					<button class="join-item btn" id="prevPage">
+						<i class="fa-solid fa-chevron-left"></i>
+					</button>
+					<span class="join-item btn" id="pageInfo">Page 1</span>
+					<button class="join-item btn" id="nextPage">
+						<i class="fa-solid fa-chevron-right"></i>
+					</button>
+				</div>
+			</div>
+			<button data-action="click->pdf-editor#startDrawZone" class="btn btn-primary mt-2">Dessiner une zone</button>
+		</div>
+
+		<!-- Partie droite : configuration -->
+		<div>
+			<h2 class="text-lg font-semibold mb-2">Zones</h2>
+
+			<div id="zone-list">
+				{% for zone in typeLivrable.zones %}
+					<div class="border p-2 mb-4 rounded bg-base-100 shadow">
+						<h3 class="font-bold">{{ zone.libelle }}</h3>
+						<p class="text-xs">Page :
+							{{ zone.page }}</p>
+						<button data-zone-id="{{ zone.id }}" class="btn btn-sm btn-secondary mt-2 add-champ-btn">Ajouter un champ</button>
+
+						<div class="mt-2">
+							{% for champ in zone.champs %}
+								<div class="text-sm p-1 border-b">
+									{{ champ.typeChamps.nom }}
+									:
+									{{ champ.question }}
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+{% endblock %}
