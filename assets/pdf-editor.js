@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         scaleY: 1,
         perPixelTargetFind: false
       });
-      fabricCanvas.add(imgObj).setActiveObject(imgObj);
+      fabricCanvas.add(imgObj);
     }
 
     img.src = dataUrl;
@@ -89,17 +89,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   const updateZoneList = () => {
     const list = document.getElementById('zone-list');
     list.innerHTML = '';
-    drawnZones.forEach((z) => {
+    drawnZones.forEach((z, index) => {
       const div = document.createElement('div');
-      div.className = 'border p-2 mb-4 rounded bg-base-100 shadow';
+      div.className = 'border p-2 mb-4 rounded bg-base-100 shadow relative';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.innerHTML = '🗑️';
+      deleteBtn.className = 'absolute top-2 right-2 text-red-500 hover:text-red-700';
+      deleteBtn.onclick = () => {
+        fabricCanvas.remove(z.fabricObj); // 🧽 remove from canvas
+        drawnZones.splice(index, 1);      // ❌ remove from list
+        updateZoneList();                 // 🔁 refresh UI
+      };
+
       div.innerHTML = `
-        <h3 class="font-bold">${z.libelle}</h3>
-        <p class="text-xs">Page : ${z.page}</p>
-        <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
-      `;
+      <h3 class="font-bold">${z.libelle}</h3>
+      <p class="text-xs">Page : ${z.page}</p>
+      <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
+    `;
+
+      div.appendChild(deleteBtn);
       list.appendChild(div);
     });
   };
+
 
   const setupDrawing = () => {
     drawingMode = true;
@@ -150,14 +163,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       isDrawing = false;
 
       const coords = {
-        x1: Math.round(rect.left)* PyRatio.x,
-        x2: Math.round(rect.left + rect.width)* PyRatio.x,
-        y1: Math.round(rect.top)* PyRatio.y,
-        y2: Math.round(rect.top + rect.height)* PyRatio.y,
+        x1: Math.round((rect.left)* PyRatio.x),
+        x2: Math.round((rect.left + rect.width)* PyRatio.x),
+        y1: Math.round((rect.top)* PyRatio.y),
+        y2: Math.round((rect.top + rect.height)* PyRatio.y),
       };
       const libelle = prompt('Entrez le libellé pour cette zone:');
       if (libelle) {
-        drawnZones.push({ page: currentPage, coords, libelle });
+        drawnZones.push({ page: currentPage, coords, libelle, fabricObj: rect });
         updateZoneList();
       } else {
         fabricCanvas.remove(rect);
