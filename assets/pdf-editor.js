@@ -1,157 +1,177 @@
-import { Canvas } from "fabric";
-import { Image as FabricImage } from "fabric";
-import * as pdfjsLib from "pdfjs-dist";
-import workerSrc from "pdfjs-dist/build/pdf.worker.min.js?url";
+import * as fabric from 'fabric';
+import * as pdfjsLib from 'pdfjs-dist';
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const container = document.getElementById("pdf-editor");
-  const pdfUrl = container?.dataset?.url;
-  
-  
-  if (!container || !pdfUrl) {
-    console.error("📄 pdf-editor: container or PDF URL missing.");
-    return;
-  }
-  
-  const htmlCanvas = document.createElement("canvas");
-  htmlCanvas.id = "pdf-canvas";
-  container.appendChild(htmlCanvas);
-  
-  // const nav = document.createElement("div");
-  // nav.innerHTML = `
-  // <button id="prevPage">◀</button>
-  // <span id="pageInfo">Page 1</span>
-  // <button id="nextPage">▶</button>
-  // `;
-  // container.appendChild(nav);
-  
-  const ctx = htmlCanvas.getContext("2d");
-  let fabricCanvas;
+document.addEventListener('DOMContentLoaded', async () => {
+  const container = document.getElementById('pdf-editor');
+  const pdfUrl = container?.dataset.pdfEditorUrlValue;
+  if (!container || !pdfUrl) return;
+
+  const htmlCanvas = container.querySelector('[data-pdf-editor-target="canvas"]');
+  if (!(htmlCanvas instanceof HTMLCanvasElement)) return;
+
   let currentPage = 1;
   let totalPages = 0;
-  let pdf = null;
-  
-  pdf = await pdfjsLib.getDocument({
+  let drawnZones = [];
+  let fabricCanvas;
+
+  const pdf = await pdfjsLib.getDocument({
     url: pdfUrl,
     disableFontFace: true,
-    cMapUrl: "/cmaps/",
-    cMapPacked: true,
+    cMapUrl: '/cmaps/',
+    cMapPacked: true
   }).promise;
+
   totalPages = pdf.numPages;
-  
-  const renderPage = async (pageNum) => {
+
+  const initCanvasDimensions = async (pageNum) => {
     const page = await pdf.getPage(pageNum);
     const containerWidth = container.clientWidth;
-    const unscaledViewport = page.getViewport({ scale: 1 });
-    const scale = containerWidth / unscaledViewport.width;
+    const unscaled = page.getViewport({ scale: 1 });
+    const scale = containerWidth / unscaled.width;
     const viewport = page.getViewport({ scale });
-    
+
     htmlCanvas.width = viewport.width;
     htmlCanvas.height = viewport.height;
-    
-    const renderContext = {
-      canvasContext: ctx,
-      viewport: viewport,
-    };
 
-    await page.render(renderContext).promise;
-    console.log("📄 pdf-editor: page rendered", pageNum);
-    const dataUrl = htmlCanvas.toDataURL();
-
-    // Reset Fabric
-    // if (fabricCanvas) {
-    //   fabricCanvas.dispose();
-    // }
-
-    // fabricCanvas = new Canvas(htmlCanvas, {
-    //   selection: false
-    // });
-
-    // FabricImage.fromURL(dataUrl, img => {
-    //   fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
-    //     scaleX: fabricCanvas.width / img.width,
-    //     scaleY: fabricCanvas.height / img.height
-    //   });
-    // });
-
-    // setupDrawing(fabricCanvas);
-    document.getElementById(
-      "pageInfo"
-    ).innerText = `Page ${currentPage} / ${totalPages}`;
+    return { page, viewport };
   };
 
-  renderPage(currentPage);
+  const createFabricCanvas = async (pageNum) => {
+    const { page, viewport } = await initCanvasDimensions(pageNum);
+    htmlCanvas.width = viewport.width;
+    htmlCanvas.height = viewport.height;
 
-  // Navigation
+    fabricCanvas = new fabric.Canvas(htmlCanvas, { selection: false,backgroundColor:null });
+  };
 
-  document.getElementById("prevPage").addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderPage(currentPage);
+  const renderPage = async (pageNum) => {
+    const { page, viewport } = await initCanvasDimensions(pageNum);
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = viewport.width;
+    tempCanvas.height = viewport.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    await page.render({
+      canvasContext: tempCtx,
+      viewport: viewport
+    }).promise;
+
+    const dataUrl = tempCanvas.toDataURL('image/png');
+    const img = new Image()
+
+    img.onload = () => {
+      const imgObj = new fabric.Image(img, {
+        selectable: false,
+        centeredRotation: true,
+        centeredScaling: true,
+        scaleX: 1,
+        scaleY: 1,
+        perPixelTargetFind: false
+      });
+      fabricCanvas.add(imgObj);
     }
-  });
 
-  document.getElementById("nextPage").addEventListener("click", () => {
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderPage(currentPage);
-    }
-  });
+    img.src = dataUrl;
+  };
 
-  function setupDrawing(canvas) {
-    let rect,
-      isDrawing = false,
-      origX = 0,
-      origY = 0;
 
-    canvas.on("mouse:down", (e) => {
+  const updateZoneList = () => {
+    const list = document.getElementById('zone-list');
+    list.innerHTML = '';
+    drawnZones.forEach((z) => {
+      const div = document.createElement('div');
+      div.className = 'border p-2 mb-4 rounded bg-base-100 shadow';
+      div.innerHTML = `
+        <h3 class="font-bold">${z.libelle}</h3>
+        <p class="text-xs">Page : ${z.page}</p>
+        <pre class="text-xs">Coords: { ${z.coords.x1}, ${z.coords.y1}, ${z.coords.x2}, ${z.coords.y2} }</pre>
+      `;
+      list.appendChild(div);
+    });
+  };
+
+  const setupDrawing = () => {
+    fabricCanvas.off('mouse:down');
+    fabricCanvas.off('mouse:move');
+    fabricCanvas.off('mouse:up');
+
+    let rect, isDrawing = false, origX = 0, origY = 0;
+
+    fabricCanvas.on('mouse:down', (e) => {
       isDrawing = true;
-      const pointer = canvas.getPointer(e.e);
-      origX = pointer.x;
-      origY = pointer.y;
+      const p = fabricCanvas.getPointer(e.e);
+      origX = p.x;
+      origY = p.y;
 
       rect = new fabric.Rect({
         left: origX,
         top: origY,
         width: 0,
         height: 0,
-        fill: "rgba(255, 0, 0, 0.3)",
-        stroke: "red",
+        fill: 'rgba(255,0,0,0.1)',
+        stroke: 'red',
         strokeWidth: 1,
-        selectable: false,
+        hasControls: true,
+        hasBorders: true,
+        selectable: true,
         evented: false,
+        strokeDashArray: [5, 5]
       });
 
-      canvas.add(rect);
+      fabricCanvas.add(rect);
     });
 
-    canvas.on("mouse:move", (e) => {
+    fabricCanvas.on('mouse:move', (e) => {
       if (!isDrawing) return;
-
-      const pointer = canvas.getPointer(e.e);
+      const p = fabricCanvas.getPointer(e.e);
       rect.set({
-        width: Math.abs(origX - pointer.x),
-        height: Math.abs(origY - pointer.y),
-        left: Math.min(origX, pointer.x),
-        top: Math.min(origY, pointer.y),
+        width: Math.abs(origX - p.x),
+        height: Math.abs(origY - p.y),
+        left: Math.min(origX, p.x),
+        top: Math.min(origY, p.y)
       });
-
-      canvas.renderAll();
+      fabricCanvas.renderAll();
     });
 
-    canvas.on("mouse:up", () => {
+    fabricCanvas.on('mouse:up', () => {
       isDrawing = false;
-
       const coords = {
         x1: Math.round(rect.left),
         y1: Math.round(rect.top),
         x2: Math.round(rect.left + rect.width),
-        y2: Math.round(rect.top + rect.height),
+        y2: Math.round(rect.top + rect.height)
       };
-
-      console.log("🧊 Zone dessinée :", coords);
+      const libelle = prompt('Entrez le libellé pour cette zone:');
+      if (libelle) {
+        drawnZones.push({ page: currentPage, coords, libelle });
+        updateZoneList();
+      }
     });
-  }
+  };
+
+  const setupControls = () => {
+    document.getElementById('addZoneBtn')?.addEventListener('click', setupDrawing);
+
+    document.getElementById('prevPage')?.addEventListener('click', async () => {
+      if (currentPage > 1) {
+        currentPage--;
+        await renderPage(currentPage);
+      }
+    });
+
+    document.getElementById('nextPage')?.addEventListener('click', async () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        await renderPage(currentPage);
+      }
+    });
+  };
+
+  await createFabricCanvas(currentPage);
+  setupControls();
+  await renderPage(currentPage);
 });

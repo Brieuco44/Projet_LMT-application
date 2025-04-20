@@ -18,8 +18,8 @@ class Zone
     #[ORM\Column(length: 255)]
     private ?string $libelle = null;
 
-    #[ORM\Column]
-    private array $coordonees = [];
+    #[ORM\Column(type: "json")]
+    private array $coordonnees = [];
 
     #[ORM\Column]
     private ?int $page = null;
@@ -55,15 +55,14 @@ class Zone
         return $this;
     }
 
-    public function getCoordonees(): array
+    public function getCoordonnees(): array
     {
-        return $this->coordonees;
+        return $this->coordonnees;
     }
 
-    public function setCoordonees(array $coordonees): static
+    public function setCoordonnees(array $coordonnees): static
     {
-        $this->coordonees = $coordonees;
-
+        $this->coordonnees = $coordonnees;
         return $this;
     }
 

@@ -30,7 +30,8 @@
         "symfony/webpack-encore-bundle": "v2.2.0",
         "symfony/yaml": "v7.2.5",
         "twig/extra-bundle": "v3.20.0",
-        "twig/twig": "v3.20.0"
+        "twig/twig": "v3.20.0",
+      "ext-imagick": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.1.2",
