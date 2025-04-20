@@ -52,6 +52,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     htmlCanvas.height = viewport.height;
 
     fabricCanvas = new fabric.Canvas(htmlCanvas, { selection: false,backgroundColor:null });
+
+    fabricCanvas.on('object:modified', (e) => {
+      const target = e.target;
+      if (!(target instanceof fabric.Rect)) return;
+
+      const zone = drawnZones.find(z => z.fabricObj === target);
+      if (!zone) return;
+
+      zone.coords = {
+        x1: Math.round(target.left * PyRatio.x),
+        x2: Math.round((target.left + target.width * target.scaleX) * PyRatio.x),
+        y1: Math.round(target.top * PyRatio.y),
+        y2: Math.round((target.top + target.height * target.scaleY) * PyRatio.y)
+      };
+
+      updateZoneList();
+    });
+
   };
 
   const renderPage = async (pageNum) => {
@@ -93,13 +111,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       const div = document.createElement('div');
       div.className = 'border p-2 mb-4 rounded bg-base-100 shadow relative';
 
+      // 🗑️ Delete button
       const deleteBtn = document.createElement('button');
       deleteBtn.innerHTML = '🗑️';
-      deleteBtn.className = 'absolute top-2 right-2 text-red-500 hover:text-red-700';
+      deleteBtn.className = 'absolute top-2 right-2 text-red-500 hover:text-red-700 ml-2';
       deleteBtn.onclick = () => {
-        fabricCanvas.remove(z.fabricObj); // 🧽 remove from canvas
-        drawnZones.splice(index, 1);      // ❌ remove from list
-        updateZoneList();                 // 🔁 refresh UI
+        fabricCanvas.remove(z.fabricObj);
+        drawnZones.splice(index, 1);
+        updateZoneList();
+      };
+
+      // ✏️ Edit button
+      const editBtn = document.createElement('button');
+      editBtn.innerHTML = '✏️';
+      editBtn.className = 'absolute top-2 right-10 text-blue-500 hover:text-blue-700';
+      editBtn.onclick = () => {
+        const newLabel = prompt('Nouveau libellé :', z.libelle);
+        if (newLabel) {
+          drawnZones[index].libelle = newLabel;
+          updateZoneList();
+        }
       };
 
       div.innerHTML = `
@@ -108,10 +139,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
     `;
 
+      div.appendChild(editBtn);
       div.appendChild(deleteBtn);
       list.appendChild(div);
     });
   };
+
 
 
   const setupDrawing = () => {
@@ -136,10 +169,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         fill: 'rgba(255,0,0,0.1)',
         stroke: 'red',
         strokeWidth: 1,
-        hasControls: true,
-        hasBorders: true,
         selectable: true,
         evented: true,
+        hasControls: true,
+        hasBorders: true,
+        lockScalingFlip: true,
+        lockRotation: true,
+        lockMovementX: false,
+        lockMovementY: false,
         strokeDashArray: [5, 5]
       });
 
@@ -206,6 +243,50 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   };
+
+  const PostZoneBtn = async () => {
+    const url = ''; // Symfony route to the controller handling the zones
+
+    // Filter drawn zones to only include those on the current page
+    const zoneData = drawnZones
+        .map(zone => ({
+          label: zone.libelle,
+          coords: zone.coords,
+          page: zone.page
+        }));
+
+    if (zoneData.length === 0) {
+      alert('No zones to post for the current page.');
+      return;
+    }
+
+    const data = {
+      zones: zoneData
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json' // Ensure the response is in JSON
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        alert('Zones have been successfully posted!');
+        console.log(responseData);
+      } else {
+        alert('Failed to post zones.');
+      }
+    } catch (error) {
+      console.error('Error posting zones:', error);
+      alert('An error occurred while posting zones.');
+    }
+  };
+
 
   await createFabricCanvas(currentPage);
   setupControls();
