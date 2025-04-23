@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\ChampsRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\TypeChamps;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ChampsRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: ChampsRepository::class)]
 class Champs
@@ -18,12 +19,8 @@ class Champs
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
-    #[ORM\Column]
-    private array $zone = [];
-
     #[ORM\ManyToOne(inversedBy: 'champs')]
-    private ?typeChamps $typeChamps = null;
-
+    private ?TypeChamps $typeChamps = null;
 
     /**
      * @var Collection<int, Controle>
@@ -36,6 +33,9 @@ class Champs
 
     #[ORM\Column(length: 255)]
     private ?string $question = null;
+
+    #[ORM\ManyToOne(inversedBy: 'champs')]
+    private ?zone $zone = null;
 
     public function __construct()
     {
@@ -59,24 +59,12 @@ class Champs
         return $this;
     }
 
-    public function getZone(): array
-    {
-        return $this->zone;
-    }
-
-    public function setZone(array $zone): static
-    {
-        $this->zone = $zone;
-
-        return $this;
-    }
-
-    public function getTypeChamps(): ?typeChamps
+    public function getTypeChamps(): ?TypeChamps
     {
         return $this->typeChamps;
     }
 
-    public function setTypeChamps(?typeChamps $typeChamps): static
+    public function setTypeChamps(?TypeChamps $typeChamps): static
     {
         $this->typeChamps = $typeChamps;
 
@@ -133,6 +121,18 @@ class Champs
     public function setQuestion(string $question): static
     {
         $this->question = $question;
+
+        return $this;
+    }
+
+    public function getZone(): ?zone
+    {
+        return $this->zone;
+    }
+
+    public function setZone(?zone $zone): static
+    {
+        $this->zone = $zone;
 
         return $this;
     }

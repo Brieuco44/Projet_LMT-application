@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin
+{% endblock %}
+
+{% block body %}
+	<div class="justify-center items-center flex m-auto">
+		<div class="flex flex-col text-center ">
+		{{ form_errors(uploadForm) }}
+			{{ form_start(uploadForm) }}
+			<div class="form-control mb-4">
+				{{ form_label(uploadForm.nom) }}
+				{{ form_widget(uploadForm.nom, {'attr': {'class': 'input input-bordered w-full'}}) }}
+			</div>
+			<div class="form-control mb-4">
+				{{ form_label(uploadForm.pdf) }}
+				{{ form_widget(uploadForm.pdf, {'attr': {'class': 'file-input file-input-bordered w-full'}}) }}
+			</div>
+			<button type="submit" class="btn btn-primary">Uploader</button>
+			{{ form_end(uploadForm) }}
+		</div>
+	</div>
+{% endblock %}

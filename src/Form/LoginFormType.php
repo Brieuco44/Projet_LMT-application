@@ -30,6 +30,7 @@ class LoginFormType extends AbstractType
     {
         $resolver->setDefaults([
             'last_username' => null, // Permet de préremplir le champ email
+            'csrf_protection' => true,
         ]);
     }
 }

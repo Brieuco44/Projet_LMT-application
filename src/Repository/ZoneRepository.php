@@ -40,4 +40,13 @@ class ZoneRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+//    public function findByTypeLivrableId($value)
+//    {
+//        return $this->createQueryBuilder('zone')
+//            ->andWhere('zone.typeLivrable = :val')
+//            ->setParameter('val', $value)
+//            ->getQuery()
+//            ->getResult();
+//    }
 }
