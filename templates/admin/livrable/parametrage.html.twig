@@ -1,79 +1,81 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Admin{% endblock %}
+{% block title %}Admin
+{% endblock %}
 
 {% block javascripts %}
 	{{ encore_entry_script_tags('pdf-editor') }}
 {% endblock %}
 
 {% block body %}
-	<h1 class="text-2xl font-bold mb-4">Paramétrage du livrable : {{ typeLivrable.nom }}</h1>
+	<h1 class="text-2xl font-bold mb-4">Paramétrage du livrable :
+		{{ typeLivrable.nom }}</h1>
 
-	<div class="grid grid-cols-5 gap-4">
+	<div
+		class="flex gap-4 mb-4">
 		<!-- Partie gauche : PDF + sélection -->
-		<div id="pdf-editor"
-			 class="col-span-2 relative"
-			 data-controller="pdf-editor"
-			 data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}">
-
-			<canvas id="pdf-editor-canvas"
-					data-pdf-editor-target="canvas"
-					class="w-full h-full block"
-					style="cursor: default;">
-			</canvas>
-
+		<div id="pdf-editor" class=" w-1/3" data-controller="pdf-editor" data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}">
+			<canvas id="pdf-editor-canvas" data-pdf-editor-target="canvas" class="w-full h-full block" style="cursor: default;"></canvas>
 			<div class="flex justify-center mt-2">
 				<div class="join">
-					<button id="prevPage"
-							class="join-item btn"
-							data-action="pdf-editor#prevPage">
+					<button id="prevPage" class="join-item btn" data-action="pdf-editor#prevPage">
 						<i class="fa-solid fa-chevron-left"></i>
 					</button>
 
-					<span id="pageInfo"
-						  class="join-item btn"
-						  data-pdf-editor-target="pageInfo">
-                        Page 1
-                    </span>
+					<span id="pageInfo" class="join-item btn" data-pdf-editor-target="pageInfo">
+						Page 1
+					</span>
 
-					<button id="nextPage"
-							class="join-item btn"
-							data-action="pdf-editor#nextPage">
+					<button id="nextPage" class="join-item btn" data-action="pdf-editor#nextPage">
 						<i class="fa-solid fa-chevron-right"></i>
 					</button>
 				</div>
 			</div>
-
 		</div>
 
-		<!-- Partie droite : configuration -->
-		<div class="col-span-3">
-			<div class="flex justify-between items-center mb-2">
-				<h2 class="text-lg font-semibold">Zones</h2>
-				<div>
-					<button id="addZoneBtn" class="btn btn-sm btn-primary">Ajouter une zone</button>
-					<button id="PostZoneBtn" class="btn btn-sm btn-active">Enregistrer</button>
+		<!-- Partie Droite : sélection de la zone et configuration -->
+		<div class="w-2/3 flex flex-row">
+			<div class="w-full ">
+				<div class="m-3">
+					<h2 class="text-xl text font-semibold text-center">Zones</h2>
 				</div>
-			</div>
-			<div id="zone-list">
-				{% for zone in typeLivrable.zones %}
-					<div class="border p-2 mb-4 rounded bg-base-100 shadow">
-						<h3 class="font-bold">{{ zone.libelle }}</h3>
-						<p class="text-xs">Page : {{ zone.page }}</p>
-						<button data-zone-id="{{ zone.id }}" class="btn btn-sm btn-secondary mt-2 add-champ-btn">
-							Ajouter un champ
-						</button>
-						<div class="mt-2">
-							{% for champ in zone.champs %}
-								<div class="text-sm p-1 border-b">
-									{{ champ.typeChamps.nom }} : {{ champ.question }}
+				<div class="flex justify-center m-2">
+					<button id="addZoneBtn" data-turbo-frame="zone-modal-frame" class="btn btn-sm btn-primary">Ajouter une zone</button>
+					{# <button id="PostZoneBtn" class="btn btn-sm btn-active">Enregistrer</button> #}
+				</div>
+				<div id="zone-list">
+					{% for zone in typeLivrable.zones %}
+						<div tabindex="0" class="collapse collapse-arrow bg-base-200 border-base-300 border m-5" data-zone-id="{{ zone.id }}">
+								<h3 class="collapse-title font-semibold">{{ zone.libelle }}</h3>
+							<div class="collapse-content">
+								<div class="flex flex-row">
+									<p class="text-xs">Page : {{ zone.page }}</p>
+									<button class="btn btn-circle btn-outline btn-error delete-zone-btn" data-action="pdf-editor#deleteZone" data-zone-id="{{ zone.id }}">
+										<i class="fa-regular fa-trash-can"></i>
+									</button>
+									<button class="btn btn-sm btn-secondary  edit-zone-btn text-right" data-action="pdf-editor#editZone" data-zone-id="{{ zone.id }}">
+										<i class="fa-solid fa-chevron-right"></i>
+									</button>
 								</div>
-							{% endfor %}
+							</div>
 						</div>
-					</div>
-				{% endfor %}
+					{% endfor %}
+				</div>
 			</div>
 		</div>
 	</div>
-
+	<dialog id="modal-zone" class="modal">
+		<div class="modal-box">
+			<h3 class="text-lg font-bold">Configuration de la zone</h3>
+			<p class="py-4">Veuillez configurer les paramètres de la zone ici.</p>
+				{{ form_start(formZone, { 'attr': { 'data-turbo-frame': 'zone-modal-frame' } }) }}
+				<div class="form-control mb-4">
+					{{ form_label(formZone.libelle) }}
+					{{ form_widget(formZone.libelle, {'attr': {'class': 'input input-bordered w-full'}}) }}
+				</div>
+					{{ form_widget(formZone.coordonnees, {'attr': {'class': 'hidden'}}) }}
+					{{ form_widget(formZone.page, {'attr': {'class': 'hidden'}}) }}
+				<button type="submit" class="btn btn-primary">Enregistrer</button>
+				{{ form_end(formZone) }}</div>
+	</dialog>
 {% endblock %}

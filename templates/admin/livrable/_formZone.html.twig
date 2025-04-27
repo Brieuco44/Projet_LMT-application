@@ -1,0 +1,22 @@
+{% extends 'base.html.twig'%}
+
+{% block title %}Zone{% endblock %}
+
+{% block body %}
+<turbo-frame id="zone-modal-frame">
+	{{ form_start(formZone, { 'attr': { 'data-turbo-frame': 'zone-modal-frame' } }) }}
+	<div class="form-control mb-4">
+		{{ form_label(formZone.libelle) }}
+		{{ form_widget(formZone.libelle, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	<div class="form-control mb-4">
+		{{ form_label(formZone.coordonnees) }}
+		{{ form_widget(formZone.coordonnees, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	<div class="form-control mb-4">
+		{{ form_label(formZone.page) }}
+		{{ form_widget(formZone.page, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	<button type="submit" class="btn btn-primary">Enregistrer</button>
+	{{ form_end(formZone) }}
+</turbo-frame>

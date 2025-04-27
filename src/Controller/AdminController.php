@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Form\ZoneType;
 use App\Entity\TypeLivrable;
 use App\Form\TypeLivrableType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -64,16 +65,40 @@ final class AdminController extends AbstractController
 
     #[Route('/admin/livrable/{id}/parametrage', name: 'admin_typelivrable_parametrage')]
     #[IsGranted('ROLE_ADMIN')]
-    public function typelivrableParametrage(int $id, TypeLivrableRepository $repo): Response
+    public function typelivrableParametrage(int $id, TypeLivrableRepository $repo, Request $request, EntityManagerInterface $entityManager): Response
     {
         $typeLivrable = $repo->find($id);
-    
         if (!$typeLivrable) {
             throw $this->createNotFoundException('livrable non trouvé.');
         }
-    
+        $formZone = $this->createForm(ZoneType::class);
+        $formZone->handleRequest($request);
+        if ($formZone->isSubmitted() && $formZone->isValid()) {
+            $zone = $formZone->getData();
+            $zone->setTypeLivrable($typeLivrable);
+            $entityManager->persist($zone);
+            $entityManager->flush();
+        }
+
         return $this->render('admin/livrable/parametrage.html.twig', [
             'typeLivrable' => $typeLivrable,
+            'formZone' => $formZone->createView(),
+            
+        ]);
+    }
+
+    #[Route('/admin/livrable/formZone', name: 'admin_typelivrable_zone_form', methods: ['GET', 'POST'])]
+    public function formZone(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $formZone = $this->createForm(ZoneType::class);
+        $formZone->handleRequest($request);
+        if ($formZone->isSubmitted() && $formZone->isValid()) {
+            $zone = $formZone->getData();
+            $entityManager->persist($zone);
+            $entityManager->flush();
+        }
+        return $this->render('admin/livrable/_formZone.html.twig', [
+
         ]);
     }
 }
