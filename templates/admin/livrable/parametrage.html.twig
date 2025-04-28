@@ -10,7 +10,6 @@
 {% block body %}
 	<h1 class="text-2xl font-bold mb-4">Paramétrage du livrable :
 		{{ typeLivrable.nom }}</h1>
-
 	<div
 		class="flex gap-4 mb-4">
 		<!-- Partie gauche : PDF + sélection -->
@@ -39,23 +38,43 @@
 				<div class="m-3">
 					<h2 class="text-xl text font-semibold text-center">Zones</h2>
 				</div>
-				<div class="flex justify-center m-2">
-					<button id="addZoneBtn" data-turbo-frame="zone-modal-frame" class="btn btn-sm btn-primary">Ajouter une zone</button>
-					{# <button id="PostZoneBtn" class="btn btn-sm btn-active">Enregistrer</button> #}
+				<div class="flex justify-center p-5">
+					<button id="addZoneBtn" class="btn btn-sm btn-primary">Ajouter une zone</button>
 				</div>
-				<div id="zone-list">
+				<div id="zone-list" class="m-3 content-center">
 					{% for zone in typeLivrable.zones %}
-						<div tabindex="0" class="collapse collapse-arrow bg-base-200 border-base-300 border m-5" data-zone-id="{{ zone.id }}">
-								<h3 class="collapse-title font-semibold">{{ zone.libelle }}</h3>
+						<div class="collapse collapse-arrow bg-base-200 border-base-300 border m-5" data-zone-id="{{ zone.id }}">
+						<input type="checkbox" />
+							<h3 class="collapse-title font-semibold">{{ zone.libelle }}</h3>
 							<div class="collapse-content">
-								<div class="flex flex-row">
-									<p class="text-xs">Page : {{ zone.page }}</p>
-									<button class="btn btn-circle btn-outline btn-error delete-zone-btn" data-action="pdf-editor#deleteZone" data-zone-id="{{ zone.id }}">
-										<i class="fa-regular fa-trash-can"></i>
-									</button>
-									<button class="btn btn-sm btn-secondary  edit-zone-btn text-right" data-action="pdf-editor#editZone" data-zone-id="{{ zone.id }}">
-										<i class="fa-solid fa-chevron-right"></i>
-									</button>
+								<div class="flex flex-col">
+									<div class="flex flex-row justify-between">
+										<button class="btn btn-outline btn-success" data-zone-id="{{ zone.id }}" onclick="openAddChampsModal({{ zone.id }})">
+											<i class="fa-solid fa-plus"></i>Ajouter un champs
+										</button>
+										<button class="btn btn-outline btn-error" data-zone-id="{{ zone.id }}">
+											<i class="fa-regular fa-trash-can"></i>Supprimer la zone
+										</button>
+										<button class="btn btn-outline btn-secondary" data-zone-id="{{ zone.id }}">
+											<i class="fa-regular fa-pen-to-square"></i>Modifier les coordonées
+										</button>
+									</div>
+									<div id="zone-{{ zone.id }}-champs-list" class="flex flex-col mt-2">
+										{% for champs in zone.champs %}
+											<div class="card bg-base-100 shadow-xl m-2 p-2" data-champs-id="{{ champs.id }}">
+												<div class="card-body">
+													<h2 class="card-title">{{ champs.nom }}</h2>
+													<p><b>Type : </b> {{ champs.typeChamps.nom }}</p>
+													<p><b>Question : </b> {{ champs.question }}</p>
+													<p><b>Données ERP : </b>{{ champs.donneeERP }}</p>
+
+													<button class="btn btn-outline btn-error"   data-champs-id="{{ champs.id }}">
+														<i class="fa-regular fa-trash-can"></i>Supprimer le champs
+													</button>
+													</div>
+											</div>
+										{% endfor %}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -64,18 +83,38 @@
 			</div>
 		</div>
 	</div>
+
 	<dialog id="modal-zone" class="modal">
 		<div class="modal-box">
+		{# TODO #}
+			{# <turbo-frame id="zone-modal-frame" src="{{ url('admin_typelivrable_zone_form')}}" loading="lazy" target="modal-zone"></turbo-frame> #}
 			<h3 class="text-lg font-bold">Configuration de la zone</h3>
 			<p class="py-4">Veuillez configurer les paramètres de la zone ici.</p>
-				{{ form_start(formZone, { 'attr': { 'data-turbo-frame': 'zone-modal-frame' } }) }}
-				<div class="form-control mb-4">
-					{{ form_label(formZone.libelle) }}
-					{{ form_widget(formZone.libelle, {'attr': {'class': 'input input-bordered w-full'}}) }}
-				</div>
-					{{ form_widget(formZone.coordonnees, {'attr': {'class': 'hidden'}}) }}
-					{{ form_widget(formZone.page, {'attr': {'class': 'hidden'}}) }}
-				<button type="submit" class="btn btn-primary">Enregistrer</button>
-				{{ form_end(formZone) }}</div>
+			{{ form_start(formZone, { 'attr': {  } }) }}
+			<div class="form-control mb-4">
+				{{ form_label(formZone.libelle) }}
+				{{ form_widget(formZone.libelle, {'attr': {'class': 'input input-bordered w-full'}}) }}
+			</div>
+			{{ form_widget(formZone.coordonnees, {'attr': {'class': 'hidden'}}) }}
+			{{ form_widget(formZone.page, {'attr': {'class': 'hidden'}}) }}
+			<button type="submit" class="btn btn-primary">Enregistrer</button>
+			{{ form_end(formZone) }}</div>
 	</dialog>
+
+	<dialog id="modalChamps" class="modal">
+		<div class="modal-box">
+			<turbo-frame id="champs_form" src="{{ url('admin_typelivrable_champs_form')}}?zone_id=null " loading="lazy" target="modal-champs"></turbo-frame>
+		</div>
+	</dialog>
+
+	<script>
+	  function openAddChampsModal(zoneId) {
+    const turboFrame = document.getElementById('champs_form');
+    turboFrame.src = `/admin/livrable/champs/form?zone_id=` + zoneId;
+  
+    // Afficher la modale
+    const modal = document.getElementById('modalChamps');
+    modal.showModal();
+  }
+	</script>
 {% endblock %}

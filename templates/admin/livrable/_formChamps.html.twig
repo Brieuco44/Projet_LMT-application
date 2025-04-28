@@ -1,0 +1,22 @@
+<turbo-frame id="champs_form">
+	{{ form_start(formChamps, { action: path('admin_typelivrable_champs_form_submit', { 'zone_id': app.request.get('zone_id') }), attr: { 'data-turbo-frame': '_top' } }) }}
+	<div class="form-control mb-4">
+		{{ form_label(formChamps.nom) }}
+		{{ form_widget(formChamps.nom, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	<div class="form-control mb-4">
+		{{ form_label(formChamps.question) }}
+		{{ form_widget(formChamps.question, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	<div class="form-control mb-4">
+		{{ form_label(formChamps.donneeERP) }}
+		{{ form_widget(formChamps.donneeERP, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	<div class="form-control mb-4">
+		{{ form_label(formChamps.typeChamps) }}
+		{{ form_widget(formChamps.typeChamps, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+	{{ form_widget(formChamps.zone, {'attr': {'class': 'hidden'}}) }}
+	<button type="submit" class="btn btn-primary">Enregistrer</button>
+	{{ form_end(formChamps) }}
+</turbo-frame>

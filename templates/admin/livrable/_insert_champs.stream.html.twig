@@ -1,0 +1,15 @@
+<turbo-stream action="append" target="zone-{{ zoneId }}-champs-list">
+    <template>
+        <div class="card bg-base-100 shadow-xl m-2 p-2" data-champs-id="{{ champs.id }}">
+            <div class="card-body">
+                <h2 class="card-title">{{ champs.nom }}</h2>
+                <p><b>Type :</b> {{ champs.typeChamps.nom }}</p>
+                <p><b>Question :</b> {{ champs.question }}</p>
+                <p><b>Données ERP :</b> {{ champs.donneeERP }}</p>
+                <button class="btn btn-outline btn-error" data-champs-id="{{ champs.id }}">
+                    <i class="fa-regular fa-trash-can"></i>Supprimer le champ
+                </button>
+            </div>
+        </div>
+    </template>
+</turbo-stream>

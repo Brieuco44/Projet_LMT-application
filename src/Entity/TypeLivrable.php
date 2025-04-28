@@ -21,11 +21,6 @@ class TypeLivrable
     #[ORM\Column(length: 255)]
     private ?string $path = null;
 
-    /**
-     * @var Collection<int, Champs>
-     */
-    #[ORM\OneToMany(targetEntity: Champs::class, mappedBy: 'typeLivrable')]
-    private Collection $champs;
 
     /**
      * @var Collection<int, Document>
@@ -41,7 +36,6 @@ class TypeLivrable
 
     public function __construct()
     {
-        $this->champs = new ArrayCollection();
         $this->documents = new ArrayCollection();
         $this->zones = new ArrayCollection();
     }
@@ -71,36 +65,6 @@ class TypeLivrable
     public function setPath(string $path): static
     {
         $this->path = $path;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Champs>
-     */
-    public function getChamps(): Collection
-    {
-        return $this->champs;
-    }
-
-    public function addChamp(Champs $champ): static
-    {
-        if (!$this->champs->contains($champ)) {
-            $this->champs->add($champ);
-            $champ->setTypeLivrable($this);
-        }
-
-        return $this;
-    }
-
-    public function removeChamp(Champs $champ): static
-    {
-        if ($this->champs->removeElement($champ)) {
-            // set the owning side to null (unless already changed)
-            if ($champ->getTypeLivrable() === $this) {
-                $champ->setTypeLivrable(null);
-            }
-        }
 
         return $this;
     }

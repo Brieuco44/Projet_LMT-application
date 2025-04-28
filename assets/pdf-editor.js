@@ -1,6 +1,8 @@
 import * as fabric from 'fabric';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
+import * as Turbo from '@hotwired/turbo';
+Turbo.start();
 
 // Configuration du worker pour PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
@@ -317,3 +319,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupControls();
   await renderPage(currentPage);
 });
+
+
