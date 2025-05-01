@@ -28,14 +28,14 @@ class Champs
     #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'champs')]
     private Collection $controles;
 
-    #[ORM\Column]
-    private ?int $page = null;
-
     #[ORM\Column(length: 255)]
     private ?string $question = null;
 
     #[ORM\ManyToOne(inversedBy: 'champs')]
-    private ?zone $zone = null;
+    private ?Zone $zone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $donneeERP = null;
 
     public function __construct()
     {
@@ -101,18 +101,6 @@ class Champs
         return $this;
     }
 
-    public function getPage(): ?int
-    {
-        return $this->page;
-    }
-
-    public function setPage(int $page): static
-    {
-        $this->page = $page;
-
-        return $this;
-    }
-
     public function getQuestion(): ?string
     {
         return $this->question;
@@ -125,14 +113,26 @@ class Champs
         return $this;
     }
 
-    public function getZone(): ?zone
+    public function getZone(): ?Zone
     {
         return $this->zone;
     }
 
-    public function setZone(?zone $zone): static
+    public function setZone(?Zone $zone): static
     {
         $this->zone = $zone;
+
+        return $this;
+    }
+
+    public function getDonneeERP(): ?string
+    {
+        return $this->donneeERP;
+    }
+
+    public function setDonneeERP(?string $donneeERP): static
+    {
+        $this->donneeERP = $donneeERP;
 
         return $this;
     }

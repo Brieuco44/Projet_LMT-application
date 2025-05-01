@@ -1,31 +1,39 @@
 <div class="w-full bg-base-100 p-2">
-    <div class="flex items-center justify-center relative">
-        <div class="absolute right-4">
-            {% if app.user %}
-                <button class="btn btn-circle btn-ghost" popovertarget="popover-1" style="anchor-name:--anchor-1">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-            {% endif %}
-        </div>
-        <div class="w-48">
-            <img class="img mx-auto" src="/images/logo-haute-def-catalys.jpeg" alt="">
-        </div>
-    </div>
-
-    <ul class="dropdown dropdown-end menu w-52 rounded-box bg-base-200 shadow-sm" popover id="popover-1" style="position-anchor:--anchor-1">
-        {% if app.user and app.user.isAdmin() %}
-            <li>
-                <a href='{{ path('app_admin') }}'>
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
-                    Admin
-                </a>
-            </li>
-        {% endif %}
-        <li>
-            <a href='{{ path('app_logout') }}' class="text-error">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Deconnexion
-            </a>
-        </li>
-    </ul>
+	<div class="flex items-center justify-center relative">
+		{% if app.user %}
+			<div class="absolute right-4">
+				<button class="btn btn-circle btn-ghost" popovertarget="popover-1" style="anchor-name:--anchor-1">
+					<i class="fa-solid fa-bars"></i>
+				</button>
+			</div>
+			<div class="dropdown dropdown-end menu w-52 rounded-box bg-base-200 shadow-sm" popover id="popover-1" style="position-anchor:--anchor-1">
+				<div class="px-4 py-3">
+					<span class="text-sm text-grey-600">
+						{{ app.user.email}}
+					</span>
+				</div>
+				<ul>
+					{% if app.user and app.user.isAdmin() %}
+						<li>
+							<a href='{{ path('app_admin') }}'>
+								<i class="fa-solid fa-screwdriver-wrench"></i>
+								Admin
+							</a>
+						</li>
+					{% endif %}
+					<li>
+						<a href='{{ path('app_logout') }}' data-turbo="false">
+							<i class="fa-solid fa-right-from-bracket text-error"></i>
+							Deconnexion
+						</a>
+					</li>
+				</ul>
+			</div>
+		{% endif %}
+		<div class="w-48">
+        <a href="{{ path('app_home') }}">
+			<img class="img mx-auto" src="/images/logo-haute-def-catalys.jpeg" alt="">
+        </a>
+		</div>
+	</div>
 </div>

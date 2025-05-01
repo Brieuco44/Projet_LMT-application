@@ -1,2 +1,10 @@
+import { startStimulusApp } from '@symfony/stimulus-bridge';
+import * as Turbo from '@hotwired/turbo';
+Turbo.start();
 
-// register any custom, 3rd party controllers here
+// Lancer Stimulus
+startStimulusApp(require.context(
+    '@symfony/stimulus-bridge/lazy-controller-loader!./controllers',
+    true,
+    /\.js$/
+));
