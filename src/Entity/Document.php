@@ -20,7 +20,7 @@ class Document
     private ?\DateTimeInterface $date = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
-    private ?typeLivrable $typeLivrable = null;
+    private ?TypeLivrable $typeLivrable = null;
 
     /**
      * @var Collection<int, Controle>
@@ -50,12 +50,12 @@ class Document
         return $this;
     }
 
-    public function getTypeLivrable(): ?typeLivrable
+    public function getTypeLivrable(): ?TypeLivrable
     {
         return $this->typeLivrable;
     }
 
-    public function setTypeLivrable(?typeLivrable $typeLivrable): static
+    public function setTypeLivrable(?TypeLivrable $typeLivrable): static
     {
         $this->typeLivrable = $typeLivrable;
 

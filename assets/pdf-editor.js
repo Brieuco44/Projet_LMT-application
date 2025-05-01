@@ -85,8 +85,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           (target.top + target.height * target.scaleY) * PyRatio.y
         ),
       };
-
-      // updateZoneList(); // Mise à jour de la liste des zones
     });
   };
 
@@ -142,54 +140,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById('prevPage').classList.remove("cursor-not-allowed");
     }
   };
-
-  // Mise à jour de la liste des zones affichées
-  // const updateZoneList = () => {
-  //   const zoneList = document.getElementById("zone-list");
-  //   drawnZones.forEach((z, index) => {
-  //     let newZoneCard = document.createElement(cardContent);
-
-  //     zoneList.innerHTML = ""; // Réinitialisation de la liste
-
-  //     const div = document.createElement("div");
-  //     div.className = "border p-2 mb-4 rounded bg-base-100 shadow relative";
-
-  //     // Bouton de suppression
-  //     const deleteBtn = document.createElement("button");
-  //     deleteBtn.innerHTML = "🗑️";
-  //     deleteBtn.className =
-  //       "absolute top-2 right-2 text-red-500 hover:text-red-700 ml-2";
-  //     deleteBtn.onclick = () => {
-  //       fabricCanvas.remove(z.fabricObj); // Suppression de l'objet du canvas
-  //       drawnZones.splice(index, 1); // Suppression de la zone de la liste
-  //       updateZoneList(); // Mise à jour de la liste
-  //     };
-
-  //     // Bouton d'édition
-  //     const editBtn = document.createElement("button");
-  //     editBtn.innerHTML = "✏️";
-  //     editBtn.className =
-  //       "absolute top-2 right-10 text-blue-500 hover:text-blue-700";
-  //     editBtn.onclick = () => {
-  //       const newLabel = prompt("Nouveau libellé :", z.libelle); // Demande d'un nouveau libellé
-  //       if (newLabel) {
-  //         drawnZones[index].libelle = newLabel; // Mise à jour du libellé
-  //         updateZoneList(); // Mise à jour de la liste
-  //       }
-  //     };
-
-  //     // Contenu de la zone
-  //     div.innerHTML = `
-  //     <h3 class="font-bold">${z.libelle}</h3>
-  //     <p class="text-xs">Page : ${z.page}</p>
-  //     <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
-  //   `;
-
-  //     div.appendChild(editBtn);
-  //     div.appendChild(deleteBtn);
-  //     list.appendChild(div);
-  //   });
-  // };
 
   // Configuration du mode dessin
   const setupDrawing = () => {
@@ -300,50 +250,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   };
-
-  // // Fonction pour envoyer les zones au serveur
-  // const PostZoneBtn = async () => {
-  //   const url = ''; // Route Symfony pour gérer les zones
-
-  //   // Filtrer les zones dessinées pour inclure uniquement celles de la page actuelle
-  //   const zoneData = drawnZones
-  //       .map(zone => ({
-  //         label: zone.libelle,
-  //         coords: zone.coords,
-  //         page: zone.page
-  //       }));
-
-  //   if (zoneData.length === 0) {
-  //     alert('No zones to post for the current page.');
-  //     return;
-  //   }
-
-  //   const data = {
-  //     zones: zoneData
-  //   };
-
-  //   try {
-  //     const response = await fetch(url, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json' // Assurez-vous que la réponse est en JSON
-  //       },
-  //       body: JSON.stringify(data)
-  //     });
-
-  //     if (response.ok) {
-  //       const responseData = await response.json();
-  //       alert('Zones have been successfully posted!');
-  //       console.log(responseData);
-  //     } else {
-  //       alert('Failed to post zones.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error posting zones:', error);
-  //     alert('An error occurred while posting zones.');
-  //   }
-  // };
 
   // Initialisation du canvas et des contrôles
   await createFabricCanvas(currentPage);
