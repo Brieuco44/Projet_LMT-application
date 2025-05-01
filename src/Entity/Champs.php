@@ -32,7 +32,7 @@ class Champs
     private ?string $question = null;
 
     #[ORM\ManyToOne(inversedBy: 'champs')]
-    private ?zone $zone = null;
+    private ?Zone $zone = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $donneeERP = null;
@@ -113,12 +113,12 @@ class Champs
         return $this;
     }
 
-    public function getZone(): ?zone
+    public function getZone(): ?Zone
     {
         return $this->zone;
     }
 
-    public function setZone(?zone $zone): static
+    public function setZone(?Zone $zone): static
     {
         $this->zone = $zone;
 

@@ -20,7 +20,7 @@ class ChampsType extends AbstractType
             ->add('donneeERP')
             ->add('typeChamps', EntityType::class, [
                 'class' => TypeChamps::class,
-                'choice_label' => 'id',
+                'choice_label' => 'nom',
             ])
             ->add('zone', EntityType::class, [
                 'class' => Zone::class,

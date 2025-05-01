@@ -41,10 +41,10 @@
 				<div class="flex justify-center p-5">
 					<button id="addZoneBtn" class="btn btn-sm btn-primary">Ajouter une zone</button>
 				</div>
-				<div id="zone-list" class="m-3 content-center">
+				<div id="zone-list" class="mx-3 content-center">
 					{% for zone in typeLivrable.zones %}
-						<div class="collapse collapse-arrow bg-base-200 border-base-300 border m-5" data-zone-id="{{ zone.id }}">
-						<input type="checkbox" />
+						<div class="collapse collapse-arrow bg-base-200 border-base-300 border m-5" id="zone-{{ zone.id }}">
+							<input type="checkbox"/>
 							<h3 class="collapse-title font-semibold">{{ zone.libelle }}</h3>
 							<div class="collapse-content">
 								<div class="flex flex-col">
@@ -52,26 +52,38 @@
 										<button class="btn btn-outline btn-success" data-zone-id="{{ zone.id }}" onclick="openAddChampsModal({{ zone.id }})">
 											<i class="fa-solid fa-plus"></i>Ajouter un champs
 										</button>
-										<button class="btn btn-outline btn-error" data-zone-id="{{ zone.id }}">
-											<i class="fa-regular fa-trash-can"></i>Supprimer la zone
-										</button>
+										<form method="delete" action="{{ path('admin_typelivrable_zone_delete', { 'id': zone.id }) }}">
+											<button class="btn btn-outline btn-error" type="submit" data-confirm="Êtes-vous sûr de vouloir supprimer cette zone ?">
+												<i class="fa-regular fa-trash-can"></i>Supprimer la zone
+											</button>
+										</form>
 										<button class="btn btn-outline btn-secondary" data-zone-id="{{ zone.id }}">
 											<i class="fa-regular fa-pen-to-square"></i>Modifier les coordonées
 										</button>
 									</div>
 									<div id="zone-{{ zone.id }}-champs-list" class="flex flex-col mt-2">
 										{% for champs in zone.champs %}
-											<div class="card bg-base-100 shadow-xl m-2 p-2" data-champs-id="{{ champs.id }}">
+											<div class="card bg-base-100 shadow-xl m-2 p-2" id="champs-{{ champs.id }}" data-champs-id="{{ champs.id }}">
 												<div class="card-body">
 													<h2 class="card-title">{{ champs.nom }}</h2>
-													<p><b>Type : </b> {{ champs.typeChamps.nom }}</p>
-													<p><b>Question : </b> {{ champs.question }}</p>
-													<p><b>Données ERP : </b>{{ champs.donneeERP }}</p>
-
-													<button class="btn btn-outline btn-error"   data-champs-id="{{ champs.id }}">
-														<i class="fa-regular fa-trash-can"></i>Supprimer le champs
-													</button>
-													</div>
+													<p>
+														<b>Type :
+														</b>
+														{{ champs.typeChamps.nom }}</p>
+													<p>
+														<b>Question :
+														</b>
+														{{ champs.question }}</p>
+													<p>
+														<b>Données ERP :
+														</b>
+														{{ champs.donneeERP }}</p>
+													<form method="delete" action="{{ path('admin_typelivrable_champs_delete', { 'id': champs.id }) }}">
+														<button type="submit" class="btn btn-outline btn-error">
+															<i class="fa-regular fa-trash-can"></i>Supprimer le champs
+														</button>
+													</form>
+												</div>
 											</div>
 										{% endfor %}
 									</div>
@@ -86,9 +98,9 @@
 
 	<dialog id="modal-zone" class="modal">
 		<div class="modal-box">
-		{# TODO #}
+			{# TODO #}
 			{# <turbo-frame id="zone-modal-frame" src="{{ url('admin_typelivrable_zone_form')}}" loading="lazy" target="modal-zone"></turbo-frame> #}
-			<h3 class="text-lg font-bold">Configuration de la zone</h3>
+				<h3 class="text-lg font-bold"> Configuration de la zone</h3>
 			<p class="py-4">Veuillez configurer les paramètres de la zone ici.</p>
 			{{ form_start(formZone, { 'attr': {  } }) }}
 			<div class="form-control mb-4">
@@ -108,13 +120,27 @@
 	</dialog>
 
 	<script>
-	  function openAddChampsModal(zoneId) {
-    const turboFrame = document.getElementById('champs_form');
-    turboFrame.src = `/admin/livrable/champs/form?zone_id=` + zoneId;
-  
-    // Afficher la modale
-    const modal = document.getElementById('modalChamps');
-    modal.showModal();
-  }
+		function openAddChampsModal(zoneId) {
+			const turboFrame = document.getElementById('champs_form');
+			turboFrame.src = `/admin/livrable/champs/form?zone_id=` + zoneId;
+
+			// Afficher la modale
+			const modal = document.getElementById('modalChamps');
+				modal.showModal();
+		}
+			// Fermer la modal après la soumission du formulaire
+		document.addEventListener('turbo:submit-end', function (event) {
+			const modal = document.getElementById('modalChamps');
+			if (modal.open) {
+				modal.close(); // Ferme la modal
+			}
+		});
+		    // Fermer la modal après la soumission du formulaire
+    document.addEventListener('turbo:submit-end', function (event) {
+        const modal = document.getElementById('modal-zone');
+        if (modal.open) {
+            modal.close(); // Ferme la modal
+        }
+    });
 	</script>
 {% endblock %}

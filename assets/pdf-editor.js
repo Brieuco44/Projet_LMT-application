@@ -1,25 +1,27 @@
-import * as fabric from 'fabric';
-import * as pdfjsLib from 'pdfjs-dist';
-import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
-import * as Turbo from '@hotwired/turbo';
+import * as fabric from "fabric";
+import * as pdfjsLib from "pdfjs-dist";
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.js?url";
+import * as Turbo from "@hotwired/turbo";
 Turbo.start();
 
 // Configuration du worker pour PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 // Événement déclenché lorsque le DOM est chargé
-document.addEventListener('DOMContentLoaded', async () => {
-  const container = document.getElementById('pdf-editor'); // Conteneur principal
+document.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("pdf-editor"); // Conteneur principal
   const pdfUrl = container?.dataset.pdfEditorUrlValue; // URL du PDF à charger
   if (!container || !pdfUrl) return; // Si le conteneur ou l'URL est manquant, on arrête
 
-  const htmlCanvas = container.querySelector('[data-pdf-editor-target="canvas"]'); // Canvas HTML pour afficher le PDF
+  const htmlCanvas = container.querySelector(
+    '[data-pdf-editor-target="canvas"]'
+  ); // Canvas HTML pour afficher le PDF
   if (!(htmlCanvas instanceof HTMLCanvasElement)) return;
 
   // Ratio pour convertir les coordonnées entre le canvas et le PDF
   let PyRatio = {
-    'x': 5.379,
-    'y': 5.385
+    x: 5.379,
+    y: 5.385,
   };
 
   let currentPage = 1; // Page actuelle du PDF
@@ -32,8 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const pdf = await pdfjsLib.getDocument({
     url: pdfUrl,
     disableFontFace: true,
-    cMapUrl: '/cmaps/',
-    cMapPacked: true
+    cMapUrl: "/cmaps/",
+    cMapPacked: true,
   }).promise;
 
   totalPages = pdf.numPages; // Récupération du nombre total de pages
@@ -59,22 +61,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     htmlCanvas.height = viewport.height;
 
     // Initialisation du canvas Fabric.js
-    fabricCanvas = new fabric.Canvas(htmlCanvas, { selection: false, backgroundColor: null });
+    fabricCanvas = new fabric.Canvas(htmlCanvas, {
+      selection: false,
+      backgroundColor: null,
+    });
 
     // Événement déclenché lorsqu'un objet est modifié
-    fabricCanvas.on('object:modified', (e) => {
+    fabricCanvas.on("object:modified", (e) => {
       const target = e.target;
       if (!(target instanceof fabric.Rect)) return;
 
       // Mise à jour des coordonnées de la zone modifiée
-      const zone = drawnZones.find(z => z.fabricObj === target);
+      const zone = drawnZones.find((z) => z.fabricObj === target);
       if (!zone) return;
 
       zone.coords = {
         x1: Math.round(target.left * PyRatio.x),
-        x2: Math.round((target.left + target.width * target.scaleX) * PyRatio.x),
+        x2: Math.round(
+          (target.left + target.width * target.scaleX) * PyRatio.x
+        ),
         y1: Math.round(target.top * PyRatio.y),
-        y2: Math.round((target.top + target.height * target.scaleY) * PyRatio.y)
+        y2: Math.round(
+          (target.top + target.height * target.scaleY) * PyRatio.y
+        ),
       };
 
       // updateZoneList(); // Mise à jour de la liste des zones
@@ -86,19 +95,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { page, viewport } = await initCanvasDimensions(pageNum);
 
     // Création d'un canvas temporaire pour le rendu
-    const tempCanvas = document.createElement('canvas');
+    const tempCanvas = document.createElement("canvas");
     tempCanvas.width = viewport.width;
     tempCanvas.height = viewport.height;
-    const tempCtx = tempCanvas.getContext('2d');
+    const tempCtx = tempCanvas.getContext("2d");
 
     // Rendu de la page sur le canvas temporaire
     await page.render({
       canvasContext: tempCtx,
-      viewport: viewport
+      viewport: viewport,
     }).promise;
 
     // Conversion du canvas temporaire en image
-    const dataUrl = tempCanvas.toDataURL('image/png');
+    const dataUrl = tempCanvas.toDataURL("image/png");
     const img = new Image();
 
     img.onload = () => {
@@ -109,62 +118,78 @@ document.addEventListener('DOMContentLoaded', async () => {
         centeredScaling: true,
         scaleX: 1,
         scaleY: 1,
-        perPixelTargetFind: false
+        perPixelTargetFind: false,
       });
       fabricCanvas.add(imgObj);
     };
 
     img.src = dataUrl;
+    document.getElementById(
+      "pageInfo"
+    ).innerText = `Page ${pageNum} sur ${totalPages}`; // Mise à jour de l'info de page
+    if (pageNum == totalPages) {
+      document.getElementById("nextPage").classList.add("btn-disabled"); // Masquer le bouton "Suivant" si on est à la dernière page
+      document.getElementById('nextPage').classList.add("cursor-not-allowed");
+    } else {
+      document.getElementById("nextPage").classList.remove("btn-disabled");
+      document.getElementById("nextPage").classList.remove("cursor-not-allowed");
+    }
+    if (pageNum == 1) {
+      document.getElementById("prevPage").classList.add("btn-disabled"); // Masquer le bouton "Précédent" si on est à la première page
+      document.getElementById('prevPage').classList.add("cursor-not-allowed");
+    } else {
+      document.getElementById("prevPage").classList.remove("btn-disabled");
+      document.getElementById('prevPage').classList.remove("cursor-not-allowed");
+    }
   };
 
   // Mise à jour de la liste des zones affichées
-  const updateZoneList = () => {
-    const zoneList = document.getElementById('zone-list');
-    drawnZones.forEach((z, index) => {
-    let newZoneCard = document.createElement(cardContent);
+  // const updateZoneList = () => {
+  //   const zoneList = document.getElementById("zone-list");
+  //   drawnZones.forEach((z, index) => {
+  //     let newZoneCard = document.createElement(cardContent);
 
-    zoneList.innerHTML = ""; // Réinitialisation de la liste
+  //     zoneList.innerHTML = ""; // Réinitialisation de la liste
 
+  //     const div = document.createElement("div");
+  //     div.className = "border p-2 mb-4 rounded bg-base-100 shadow relative";
 
+  //     // Bouton de suppression
+  //     const deleteBtn = document.createElement("button");
+  //     deleteBtn.innerHTML = "🗑️";
+  //     deleteBtn.className =
+  //       "absolute top-2 right-2 text-red-500 hover:text-red-700 ml-2";
+  //     deleteBtn.onclick = () => {
+  //       fabricCanvas.remove(z.fabricObj); // Suppression de l'objet du canvas
+  //       drawnZones.splice(index, 1); // Suppression de la zone de la liste
+  //       updateZoneList(); // Mise à jour de la liste
+  //     };
 
+  //     // Bouton d'édition
+  //     const editBtn = document.createElement("button");
+  //     editBtn.innerHTML = "✏️";
+  //     editBtn.className =
+  //       "absolute top-2 right-10 text-blue-500 hover:text-blue-700";
+  //     editBtn.onclick = () => {
+  //       const newLabel = prompt("Nouveau libellé :", z.libelle); // Demande d'un nouveau libellé
+  //       if (newLabel) {
+  //         drawnZones[index].libelle = newLabel; // Mise à jour du libellé
+  //         updateZoneList(); // Mise à jour de la liste
+  //       }
+  //     };
 
-      const div = document.createElement('div');
-      div.className = 'border p-2 mb-4 rounded bg-base-100 shadow relative';
+  //     // Contenu de la zone
+  //     div.innerHTML = `
+  //     <h3 class="font-bold">${z.libelle}</h3>
+  //     <p class="text-xs">Page : ${z.page}</p>
+  //     <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
+  //   `;
 
-      // Bouton de suppression
-      const deleteBtn = document.createElement('button');
-      deleteBtn.innerHTML = '🗑️';
-      deleteBtn.className = 'absolute top-2 right-2 text-red-500 hover:text-red-700 ml-2';
-      deleteBtn.onclick = () => {
-        fabricCanvas.remove(z.fabricObj); // Suppression de l'objet du canvas
-        drawnZones.splice(index, 1); // Suppression de la zone de la liste
-        updateZoneList(); // Mise à jour de la liste
-      };
-
-      // Bouton d'édition
-      const editBtn = document.createElement('button');
-      editBtn.innerHTML = '✏️';
-      editBtn.className = 'absolute top-2 right-10 text-blue-500 hover:text-blue-700';
-      editBtn.onclick = () => {
-        const newLabel = prompt('Nouveau libellé :', z.libelle); // Demande d'un nouveau libellé
-        if (newLabel) {
-          drawnZones[index].libelle = newLabel; // Mise à jour du libellé
-          updateZoneList(); // Mise à jour de la liste
-        }
-      };
-
-      // Contenu de la zone
-      div.innerHTML = `
-      <h3 class="font-bold">${z.libelle}</h3>
-      <p class="text-xs">Page : ${z.page}</p>
-      <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
-    `;
-
-      div.appendChild(editBtn);
-      div.appendChild(deleteBtn);
-      list.appendChild(div);
-    });
-  };
+  //     div.appendChild(editBtn);
+  //     div.appendChild(deleteBtn);
+  //     list.appendChild(div);
+  //   });
+  // };
 
   // Configuration du mode dessin
   const setupDrawing = () => {
@@ -172,7 +197,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     fabricCanvas.selection = false;
 
-    let rect, isDrawing = false, origX = 0, origY = 0;
+    let rect,
+      isDrawing = false,
+      origX = 0,
+      origY = 0;
 
     // Événement déclenché lors du clic pour commencer à dessiner
     const onMouseDown = (e) => {
@@ -188,8 +216,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         top: origY,
         width: 0,
         height: 0,
-        fill: 'rgba(255,0,0,0.1)',
-        stroke: 'red',
+        fill: "rgba(255,0,0,0.1)",
+        stroke: "red",
         strokeWidth: 1,
         selectable: true,
         evented: true,
@@ -199,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lockRotation: true,
         lockMovementX: false,
         lockMovementY: false,
-        strokeDashArray: [5, 5]
+        strokeDashArray: [5, 5],
       });
 
       fabricCanvas.add(rect);
@@ -213,7 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         width: Math.abs(origX - p.x),
         height: Math.abs(origY - p.y),
         left: Math.min(origX, p.x),
-        top: Math.min(origY, p.y)
+        top: Math.min(origY, p.y),
       });
       fabricCanvas.renderAll();
     };
@@ -225,44 +253,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Calcul des coordonnées de la zone
       const coords = {
-        x1: Math.round((rect.left) * PyRatio.x),
+        x1: Math.round(rect.left * PyRatio.x),
         x2: Math.round((rect.left + rect.width) * PyRatio.x),
-        y1: Math.round((rect.top) * PyRatio.y),
+        y1: Math.round(rect.top * PyRatio.y),
         y2: Math.round((rect.top + rect.height) * PyRatio.y),
       };
 
+      document
+        .getElementById("zone_coordonnees")
+        .setAttribute("value", JSON.stringify(coords)); // Mise à jour des coordonnées
+      document.getElementById("zone_page").setAttribute("value", currentPage); // Mise à jour de la page
 
-      document.getElementById('zone_coordonnees').setAttribute('value', JSON.stringify(coords)); // Mise à jour des coordonnées
-      document.getElementById('zone_page').setAttribute('value', currentPage); // Mise à jour de la page
-      
       // Affichage de la modal pour entrer un libellé
-      const dialog = document.getElementById('modal-zone');
+      const dialog = document.getElementById("modal-zone");
       dialog.showModal(); // Demande d'un libellé
 
       drawingMode = false;
-      fabricCanvas.defaultCursor = 'default';
-      fabricCanvas.off('mouse:down', onMouseDown);
-      fabricCanvas.off('mouse:move', onMouseMove);
-      fabricCanvas.off('mouse:up', onMouseUp);
+      fabricCanvas.defaultCursor = "default";
+      fabricCanvas.off("mouse:down", onMouseDown);
+      fabricCanvas.off("mouse:move", onMouseMove);
+      fabricCanvas.off("mouse:up", onMouseUp);
     };
 
-    fabricCanvas.on('mouse:down', onMouseDown);
-    fabricCanvas.on('mouse:move', onMouseMove);
-    fabricCanvas.on('mouse:up', onMouseUp);
+    fabricCanvas.on("mouse:down", onMouseDown);
+    fabricCanvas.on("mouse:move", onMouseMove);
+    fabricCanvas.on("mouse:up", onMouseUp);
   };
 
   // Configuration des contrôles pour changer de page ou ajouter une zone
   const setupControls = () => {
-    document.getElementById('addZoneBtn')?.addEventListener('click', setupDrawing);
+    document
+      .getElementById("addZoneBtn")
+      ?.addEventListener("click", setupDrawing);
 
-    document.getElementById('prevPage')?.addEventListener('click', async () => {
+    document.getElementById("prevPage")?.addEventListener("click", async () => {
       if (currentPage > 1) {
         currentPage--;
         await renderPage(currentPage);
       }
     });
 
-    document.getElementById('nextPage')?.addEventListener('click', async () => {
+    document.getElementById("nextPage")?.addEventListener("click", async () => {
       if (currentPage < totalPages) {
         currentPage++;
         await renderPage(currentPage);
@@ -270,54 +301,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   };
 
-  // Fonction pour envoyer les zones au serveur
-  const PostZoneBtn = async () => {
-    const url = ''; // Route Symfony pour gérer les zones
+  // // Fonction pour envoyer les zones au serveur
+  // const PostZoneBtn = async () => {
+  //   const url = ''; // Route Symfony pour gérer les zones
 
-    // Filtrer les zones dessinées pour inclure uniquement celles de la page actuelle
-    const zoneData = drawnZones
-        .map(zone => ({
-          label: zone.libelle,
-          coords: zone.coords,
-          page: zone.page
-        }));
+  //   // Filtrer les zones dessinées pour inclure uniquement celles de la page actuelle
+  //   const zoneData = drawnZones
+  //       .map(zone => ({
+  //         label: zone.libelle,
+  //         coords: zone.coords,
+  //         page: zone.page
+  //       }));
 
-    if (zoneData.length === 0) {
-      alert('No zones to post for the current page.');
-      return;
-    }
+  //   if (zoneData.length === 0) {
+  //     alert('No zones to post for the current page.');
+  //     return;
+  //   }
 
-    const data = {
-      zones: zoneData
-    };
+  //   const data = {
+  //     zones: zoneData
+  //   };
 
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json' // Assurez-vous que la réponse est en JSON
-        },
-        body: JSON.stringify(data)
-      });
+  //   try {
+  //     const response = await fetch(url, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json' // Assurez-vous que la réponse est en JSON
+  //       },
+  //       body: JSON.stringify(data)
+  //     });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        alert('Zones have been successfully posted!');
-        console.log(responseData);
-      } else {
-        alert('Failed to post zones.');
-      }
-    } catch (error) {
-      console.error('Error posting zones:', error);
-      alert('An error occurred while posting zones.');
-    }
-  };
+  //     if (response.ok) {
+  //       const responseData = await response.json();
+  //       alert('Zones have been successfully posted!');
+  //       console.log(responseData);
+  //     } else {
+  //       alert('Failed to post zones.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error posting zones:', error);
+  //     alert('An error occurred while posting zones.');
+  //   }
+  // };
 
   // Initialisation du canvas et des contrôles
   await createFabricCanvas(currentPage);
   setupControls();
   await renderPage(currentPage);
 });
-
-

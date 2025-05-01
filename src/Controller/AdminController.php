@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\UX\Turbo\TurboBundle;
 
 final class AdminController extends AbstractController
 {
@@ -81,6 +82,12 @@ final class AdminController extends AbstractController
             $zone->setTypeLivrable($typeLivrable);
             $entityManager->persist($zone);
             $entityManager->flush();
+            if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+                $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                return $this->render('admin/livrable/_insert_zone.stream.html.twig', [
+                    'zone' => $zone,
+                ]);
+            }
         }
         return $this->render('admin/livrable/parametrage.html.twig', [
             'typeLivrable' => $typeLivrable,
@@ -118,42 +125,6 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    // #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form')]
-    // public function champsForm(Request $request, EntityManagerInterface $em): Response
-    // {
-    //     $zoneId = $request->query->get('zone_id');
-    //     $zone = $em->getRepository(Zone::class)->find($zoneId);
-    //     $champs = new Champs();
-    //     if ($zone) {
-    //         $champs->setZone($zone);
-    //     }
-
-    //     $formChamps = $this->createForm(ChampsType::class, $champs);
-    //     $formChamps->handleRequest($request);
-
-    //     if ($formChamps->isSubmitted() && $formChamps->isValid()) {
-    //         dd($formChamps->getData());
-    //         $em->persist($champs);
-    //         $em->flush();
-
-    //         // C'est ici qu'on vérifie si c'est une requête Turbo-Stream
-    //         if ($request->headers->contains('Turbo-Frame', 'champs_form')) {
-    //             return $this->render('admin/typelivrable/_insert_champs.stream.html.twig', [
-    //                 'champs' => $champs,
-    //                 'zoneId' => $zoneId,
-    //             ]);
-    //         }
-
-    //         // Sinon faire une redirection normale (par sécurité)
-    //         return $this->redirectToRoute('admin_typelivrable_edit', ['id' => $zone->getTypeLivrable()->getId()]);
-    //     }
-
-    //     // Soit un GET (affichage vide), soit POST invalide (erreurs)
-    //     return $this->render('admin/livrable/_formChamps.html.twig', [
-    //         'formChamps' => $formChamps,
-    //     ]);
-    // }
-
     #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form', methods: ['GET'])]
     public function champsForm(Request $request, EntityManagerInterface $em): Response
     {
@@ -172,7 +143,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form_submit', methods: ['POST'])]
-    public function champsFormSubmit(Request $request, EntityManagerInterface $em): Response
+    public function champsFormSubmit(Request $request, EntityManagerInterface $em)
     {
         $zoneId = $request->query->get('zone_id');
         $zone = $em->getRepository(Zone::class)->find($zoneId);
@@ -187,16 +158,50 @@ final class AdminController extends AbstractController
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
             $em->persist($champs);
             $em->flush();
+            if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+                $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                return $this->render('admin/livrable/_insert_champs.stream.html.twig', [
+                    'champs' => $champs,
+                    'zoneId' => $zoneId,
+                ]);
+            }
+        }
+    }
 
-            return $this->render('admin/livrable/_insert_champs.stream.html.twig', [
-                'champs' => $champs,
-                'zoneId' => $zoneId,
+    #[Route('/admin/livrable/champs/{id}/delete', name: 'admin_typelivrable_champs_delete', methods: ['DELETE'])]
+    public function deleteChamps(int $id, EntityManagerInterface $entityManager, Request $request)
+    {
+        $champs = $entityManager->getRepository(Champs::class)->find($id);
+
+        if (!$champs) {
+            throw $this->createNotFoundException('Le champ demandé n\'existe pas.');
+        }
+        $entityManager->remove($champs);
+        $entityManager->flush();
+        if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+            $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+            return $this->render('admin/livrable/_delete_champs.stream.html.twig', [
+                'champsId' => $id,
             ]);
         }
+    }
 
-        // Si le formulaire a des erreurs de validation
-        return $this->render('admin/livrable/_formChamps.html.twig', [
-            'formChamps' => $formChamps,
-        ]);
+
+    #[Route('/admin/livrable/zone/{id}/delete', name: 'admin_typelivrable_zone_delete', methods: ['DELETE'])]
+    public function deleteZone(int $id, EntityManagerInterface $entityManager, Request $request)
+    {
+        $zone = $entityManager->getRepository(Zone::class)->find($id);
+
+        if (!$zone) {
+            throw $this->createNotFoundException('La zone demandée n\'existe pas.');
+        }
+        $entityManager->remove($zone);
+        $entityManager->flush();
+        if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+            $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+            return $this->render('admin/livrable/_delete_zone.stream.html.twig', [
+                'zoneId' => $id,
+            ]);
+        }
     }
 }

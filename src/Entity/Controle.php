@@ -17,7 +17,7 @@ class Controle
     private ?bool $resultat = null;
 
     #[ORM\ManyToOne(inversedBy: 'controles')]
-    private ?document $document = null;
+    private ?Document $document = null;
 
     #[ORM\ManyToOne(inversedBy: 'controles')]
     private ?champs $champs = null;
@@ -39,12 +39,12 @@ class Controle
         return $this;
     }
 
-    public function getDocument(): ?document
+    public function getDocument(): ?Document
     {
         return $this->document;
     }
 
-    public function setDocument(?document $document): static
+    public function setDocument(?Document $document): static
     {
         $this->document = $document;
 
