@@ -150,19 +150,20 @@
 			const modal = document.getElementById('modalChamps');
 				modal.showModal();
 		}
-			// Fermer la modal après la soumission du formulaire
+
+		// Fermer la modal après la soumission du formulaire
 		document.addEventListener('turbo:submit-end', function (event) {
 			const modal = document.getElementById('modalChamps');
 			if (modal.open) {
 				modal.close(); // Ferme la modal
 			}
 		});
-		    // Fermer la modal après la soumission du formulaire
-    document.addEventListener('turbo:submit-end', function (event) {
-        const modal = document.getElementById('modal-zone');
-        if (modal.open) {
-            modal.close(); // Ferme la modal
-        }
-    });
+
+		document.addEventListener('turbo:submit-end', function (event) {
+			const modal = document.getElementById('modal-zone');
+			if (modal.open) {
+				modal.close(); // Ferme la modal
+			}
+		});
 	</script>
 {% endblock %}

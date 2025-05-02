@@ -8,7 +8,7 @@ Turbo.start();
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 // Événement déclenché lorsque le DOM est chargé
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("turbo:load", async () => {
   const container = document.getElementById("pdf-editor"); // Conteneur principal
   const pdfUrl = container?.dataset.pdfEditorUrlValue; // URL du PDF à charger
   if (!container || !pdfUrl) return; // Si le conteneur ou l'URL est manquant, on arrête
@@ -184,10 +184,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         hasControls: true,
         hasBorders: true,
         lockScalingFlip: true,
-        lockRotation: true,
+        lockRotation: false,
         lockMovementX: false,
         lockMovementY: false,
-        strokeDashArray: [5, 5],
       });
 
       fabricCanvas.add(rect);
@@ -240,23 +239,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     fabricCanvas.on("mouse:up", onMouseUp);
   };
 
-  // Configuration des contrôles pour changer de page ou ajouter une zone
   const setupControls = () => {
     document
       .getElementById("addZoneBtn")
       ?.addEventListener("click", setupDrawing);
 
-    document.querySelectorAll('button[data-zone-id]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const zoneId = Number(btn.dataset.zoneId); // <-- ici on caste en Number
-        console.log(zoneId, drawnZones);
+    const zoneList = document.getElementById("zone-list");
+    zoneList.addEventListener("click", (e) => {
+      const btn = /** @type {HTMLButtonElement} */ (e.target);
+      if (!btn.matches("button[data-zone-id]")) return;
 
-        const zone = drawnZones.find(z => z.id === zoneId);
-        console.log(zone);
+      const zoneId = Number(btn.dataset.zoneId);
+      console.log("clicked zone:", zoneId, drawnZones);
 
-        if (!zone) return;
-        updateZone(zone,zoneId);
-      });
+      const zone = drawnZones.find((z) => z.id === zoneId);
+      if (!zone) return;
+
+      updateZone(zone, zoneId);
     });
 
     document.getElementById("prevPage")?.addEventListener("click", async () => {
@@ -276,17 +275,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
-  // Chargement des zones existantes dans le PDF
-  const initialZones = JSON.parse(container.dataset.zones || '[]');
-
-
+  let initialZones = JSON.parse(container.dataset.zones || '[]');
 
   /**
    * Create and register Fabric rectangles for existing zones
    */
   const loadExistingZones = () => {
     initialZones.forEach(z => {
-      // Only load rectangles for the current PDF page
       if (z.page !== currentPage) return;
 
       // Convert PDF coords back to canvas coords
@@ -384,7 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
    function updateZone(zone,zoneId) {
-
+    console.log("Upd : ",zone,zoneId);
       zone.fabricObj.set({ selectable: true, hasControls: true, lockRotation: false, evented: true, stroke: 'blue' });
       fabricCanvas.setActiveObject(zone.fabricObj);
       fabricCanvas.renderAll();
@@ -392,7 +387,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const onObjectModified = async (e) => {
         if (e.target !== zone.fabricObj) return;
 
-        // Recalculer les coords PDF
         const coords = {
           x1: Math.round(zone.fabricObj.left * PyRatio.x),
           y1: Math.round(zone.fabricObj.top * PyRatio.y),
@@ -425,24 +419,76 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  document.querySelectorAll('#zone-list .collapse').forEach(collapseEl => {
-    const checkbox = collapseEl.querySelector('input[type="checkbox"]');
-    if (!checkbox) return;
-    checkbox.addEventListener('change', () => {
-      const id = collapseEl.id;
+  // Delegate all collapse-checkbox "change" events
+  document.getElementById("zone-list").addEventListener("change", (e) => {
+    const cb = /** @type {HTMLInputElement} */ (e.target);
+    if (!cb.matches(".collapse input[type='checkbox']")) return;
 
-      if (checkbox.checked) {
-        document.querySelectorAll('#zone-list .collapse input[type="checkbox"]').forEach(otherCb => {
-          if (otherCb !== checkbox && otherCb.checked) {
+    const collapseEl = cb.closest(".collapse");
+    if (!collapseEl) return;
+
+    // Uncheck any other open panels
+    document.querySelectorAll('#zone-list .collapse input[type="checkbox"]')
+        .forEach(otherCb => {
+          if (otherCb !== cb && otherCb.checked) {
             otherCb.checked = false;
-            hideZoneRects(otherCb.closest('.collapse').id);
+            hideZoneRects(otherCb.closest(".collapse").id);
           }
         });
-        showZoneRects(id);
-      } else {
-        hideZoneRects(id);
-      }
-    });
+
+    // Show or hide the rect for *this* one
+    if (cb.checked) {
+      showZoneRects(collapseEl.id);
+    } else {
+      hideZoneRects(collapseEl.id);
+    }
   });
+
+  document.addEventListener("turbo:before-stream-render", async (e) => {
+    const stream = e.target;
+    const action = stream.getAttribute("action");
+    const target = stream.getAttribute("target");
+
+    console.log("Turbo stream:", { action, target });
+
+    // —— HANDLE REMOVALS ——
+    if (action === "remove" && target?.startsWith("zone-")) {
+      const id = Number(stream.getAttribute("data-zone-id"));
+      console.log("⛔ Removing zone", id);
+
+      initialZones = initialZones.filter(z => z.id !== id);
+      drawnZones   = drawnZones.filter(z => z.id !== id);
+
+      const stray = document.querySelector(`.zone-rect[data-zone-id="${id}"]`);
+      if (stray) stray.remove();
+
+      await renderPageWithZones(currentPage);
+
+      console.log("Zones after removal:", initialZones, drawnZones);
+      return;
+    }
+
+    if (action === "append" && target === "zone-list") {
+      console.log("➕ Appending new zone");
+
+      const template = stream.querySelector("template");
+      if (!template) return;
+      const frag   = document.importNode(template.content, true);
+      const zoneEl = frag.querySelector(".zone-item");
+      if (!zoneEl) return;
+
+      const id     = Number(zoneEl.dataset.zoneId);
+      const page   = Number(zoneEl.dataset.zonePage);
+      const coords = JSON.parse(zoneEl.dataset.zoneCoords);
+
+      initialZones.push({ id, page, coords });
+
+      await renderPageWithZones(currentPage);
+
+      console.log("Zones after append:", initialZones, drawnZones);
+    }
+  });
+
+
 });
 
