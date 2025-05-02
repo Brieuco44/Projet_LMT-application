@@ -19,10 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!(htmlCanvas instanceof HTMLCanvasElement)) return;
 
   // Ratio pour convertir les coordonnées entre le canvas et le PDF
-  let PyRatio = {
-    x: 5.379,
-    y: 5.385,
-  };
+  // let PyRatio = {
+  //   x: 5.379,
+  //   y: 5.385,
+  // };
+  let PyRatio = {};
 
   let currentPage = 1; // Page actuelle du PDF
   let totalPages = 0; // Nombre total de pages dans le PDF
@@ -50,6 +51,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     htmlCanvas.width = viewport.width; // Largeur du canvas
     htmlCanvas.height = viewport.height; // Hauteur du canvas
+
+    PyRatio = {
+      x: 2480/viewport.width,
+      y: 3506/viewport.height,
+    };
 
     return { page, viewport };
   };
@@ -108,22 +114,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Conversion du canvas temporaire en image
     const dataUrl = tempCanvas.toDataURL("image/png");
-    const img = new Image();
+    await new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const imgObj = new fabric.Image(img, {
+          selectable: false,
+          centeredRotation: true,
+          centeredScaling: true,
+          scaleX: 1,
+          scaleY: 1,
+          perPixelTargetFind: false,
+        });
+        fabricCanvas.add(imgObj);
+        resolve();          // only resolve after the image is in the canvas
+      };
+      img.src = dataUrl;
+    });
 
-    img.onload = () => {
-      // Ajout de l'image en arrière-plan du canvas Fabric.js
-      const imgObj = new fabric.Image(img, {
-        selectable: false,
-        centeredRotation: true,
-        centeredScaling: true,
-        scaleX: 1,
-        scaleY: 1,
-        perPixelTargetFind: false,
-      });
-      fabricCanvas.add(imgObj);
-    };
 
-    img.src = dataUrl;
     document.getElementById(
       "pageInfo"
     ).innerText = `Page ${pageNum} sur ${totalPages}`; // Mise à jour de l'info de page
@@ -143,53 +151,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  // Mise à jour de la liste des zones affichées
-  // const updateZoneList = () => {
-  //   const zoneList = document.getElementById("zone-list");
-  //   drawnZones.forEach((z, index) => {
-  //     let newZoneCard = document.createElement(cardContent);
-
-  //     zoneList.innerHTML = ""; // Réinitialisation de la liste
-
-  //     const div = document.createElement("div");
-  //     div.className = "border p-2 mb-4 rounded bg-base-100 shadow relative";
-
-  //     // Bouton de suppression
-  //     const deleteBtn = document.createElement("button");
-  //     deleteBtn.innerHTML = "🗑️";
-  //     deleteBtn.className =
-  //       "absolute top-2 right-2 text-red-500 hover:text-red-700 ml-2";
-  //     deleteBtn.onclick = () => {
-  //       fabricCanvas.remove(z.fabricObj); // Suppression de l'objet du canvas
-  //       drawnZones.splice(index, 1); // Suppression de la zone de la liste
-  //       updateZoneList(); // Mise à jour de la liste
-  //     };
-
-  //     // Bouton d'édition
-  //     const editBtn = document.createElement("button");
-  //     editBtn.innerHTML = "✏️";
-  //     editBtn.className =
-  //       "absolute top-2 right-10 text-blue-500 hover:text-blue-700";
-  //     editBtn.onclick = () => {
-  //       const newLabel = prompt("Nouveau libellé :", z.libelle); // Demande d'un nouveau libellé
-  //       if (newLabel) {
-  //         drawnZones[index].libelle = newLabel; // Mise à jour du libellé
-  //         updateZoneList(); // Mise à jour de la liste
-  //       }
-  //     };
-
-  //     // Contenu de la zone
-  //     div.innerHTML = `
-  //     <h3 class="font-bold">${z.libelle}</h3>
-  //     <p class="text-xs">Page : ${z.page}</p>
-  //     <pre class="text-xs">Coords: {'x1': ${z.coords.x1}, 'x2': ${z.coords.x2}, 'y1': ${z.coords.y1}, 'y2': ${z.coords.y2} }</pre>
-  //   `;
-
-  //     div.appendChild(editBtn);
-  //     div.appendChild(deleteBtn);
-  //     list.appendChild(div);
-  //   });
-  // };
 
   // Configuration du mode dessin
   const setupDrawing = () => {
@@ -301,52 +262,131 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
-  // // Fonction pour envoyer les zones au serveur
-  // const PostZoneBtn = async () => {
-  //   const url = ''; // Route Symfony pour gérer les zones
+  const initialZones = JSON.parse(container.dataset.zones || '[]');
 
-  //   // Filtrer les zones dessinées pour inclure uniquement celles de la page actuelle
-  //   const zoneData = drawnZones
-  //       .map(zone => ({
-  //         label: zone.libelle,
-  //         coords: zone.coords,
-  //         page: zone.page
-  //       }));
 
-  //   if (zoneData.length === 0) {
-  //     alert('No zones to post for the current page.');
-  //     return;
-  //   }
 
-  //   const data = {
-  //     zones: zoneData
-  //   };
+  /**
+   * Create and register Fabric rectangles for existing zones
+   */
+  const loadExistingZones = () => {
+    initialZones.forEach(z => {
+      // Only load rectangles for the current PDF page
+      if (z.page !== currentPage) return;
 
-  //   try {
-  //     const response = await fetch(url, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json' // Assurez-vous que la réponse est en JSON
-  //       },
-  //       body: JSON.stringify(data)
-  //     });
+      // Convert PDF coords back to canvas coords
+      const left = z.coords.x1 / PyRatio.x;
+      const top = z.coords.y1 / PyRatio.y;
+      const width = (z.coords.x2 - z.coords.x1) / PyRatio.x;
+      const height = (z.coords.y2 - z.coords.y1) / PyRatio.y;
 
-  //     if (response.ok) {
-  //       const responseData = await response.json();
-  //       alert('Zones have been successfully posted!');
-  //       console.log(responseData);
-  //     } else {
-  //       alert('Failed to post zones.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error posting zones:', error);
-  //     alert('An error occurred while posting zones.');
-  //   }
-  // };
+      const rect = new fabric.Rect({
+        left,
+        top,
+        width,
+        height,
+        fill: "rgba(255,0,0,0.1)",
+        stroke: "red",
+        strokeWidth: 1,
+        selectable: true,
+        visible: false,
+        hasControls: true,
+        lockRotation: true
+      });
 
-  // Initialisation du canvas et des contrôles
+      fabricCanvas.add(rect);
+      drawnZones.push({
+        id: z.id,
+        page: z.page,
+        coords: z.coords,
+        fabricObj: rect
+      });
+    });
+
+    fabricCanvas.renderAll();
+  };
+
+  // Override renderPage to clear and reload zones on each page change
+  const renderPageWithZones = async (pageNum) => {
+    // Remove all existing fabric objects except background image
+    fabricCanvas.getObjects().forEach(o => {
+      if (!(o instanceof fabric.Image)) fabricCanvas.remove(o);
+    });
+    drawnZones = []; // reset
+
+    await renderPage(pageNum);
+    loadExistingZones();
+  };
+
+  // Replace calls to renderPage with renderPageWithZones
   await createFabricCanvas(currentPage);
   setupControls();
-  await renderPage(currentPage);
+  await renderPageWithZones(currentPage);
+
+  // Update prev/next page handlers to use renderPageWithZones
+  document.getElementById("prevPage")?.addEventListener("click", async () => {
+    if (currentPage > 1) {
+      currentPage--;
+      await renderPageWithZones(currentPage);
+    }
+  });
+  document.getElementById("nextPage")?.addEventListener("click", async () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      await renderPageWithZones(currentPage);
+    }
+  });
+
+  /**
+   * Show rectangles on the fabric canvas for a given zone collapse ID
+   * @param {string} collapseId - ID of the collapse element, e.g. 'zone-42'
+   */
+  function showZoneRects(collapseId) {
+    const zoneId = parseInt(collapseId.replace('zone-', ''), 10);
+
+    drawnZones.forEach(z => {
+
+      if (z.id === zoneId) {
+        console.log(z.id, zoneId);
+        z.fabricObj.set({ visible: true });
+      }
+    });
+    fabricCanvas.renderAll();
+  }
+
+  /**
+   * Hide rectangles for a given zone collapse ID
+   * @param {string} collapseId
+   */
+  function hideZoneRects(collapseId) {
+    const zoneId = parseInt(collapseId.replace('zone-', ''), 10);
+    drawnZones.forEach(z => {
+      if (z.id === zoneId) {
+        z.fabricObj.set({ visible: false });
+      }
+    });
+    fabricCanvas.renderAll();
+  }
+
+  document.querySelectorAll('#zone-list .collapse').forEach(collapseEl => {
+    const checkbox = collapseEl.querySelector('input[type="checkbox"]');
+    if (!checkbox) return;
+    checkbox.addEventListener('change', () => {
+      const id = collapseEl.id;
+      console.log(id);
+      if (checkbox.checked) {
+        document.querySelectorAll('#zone-list .collapse input[type="checkbox"]').forEach(otherCb => {
+          if (otherCb !== checkbox && otherCb.checked) {
+            otherCb.checked = false;
+            hideZoneRects(otherCb.closest('.collapse').id);
+          }
+        });
+        showZoneRects(id);
+      } else {
+        hideZoneRects(id);
+      }
+    });
+  });
 });
+
+

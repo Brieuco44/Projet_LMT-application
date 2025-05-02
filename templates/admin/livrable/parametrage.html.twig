@@ -7,13 +7,30 @@
 	{{ encore_entry_script_tags('pdf-editor') }}
 {% endblock %}
 
+{% set zonesJson = typeLivrable.zones|map(z => {
+	'id': z.id,
+	'page': z.page,
+	'coords': {
+		'x1': z.coordonnees.x1,
+		'x2': z.coordonnees.x2,
+		'y1': z.coordonnees.y1,
+		'y2': z.coordonnees.y2
+	}
+})|json_encode() %}
+
 {% block body %}
 	<h1 class="text-2xl font-bold mb-4">Paramétrage du livrable :
 		{{ typeLivrable.nom }}</h1>
 	<div
 		class="flex gap-4 mb-4">
 		<!-- Partie gauche : PDF + sélection -->
-		<div id="pdf-editor" class=" w-1/3" data-controller="pdf-editor" data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}">
+		<div
+				id="pdf-editor"
+				class="w-1/3"
+				data-controller="pdf-editor"
+				data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}"
+				data-zones='{{ zonesJson|raw }}'  {# << here! #}
+		>
 			<canvas id="pdf-editor-canvas" data-pdf-editor-target="canvas" class="w-full h-full block" style="cursor: default;"></canvas>
 			<div class="flex justify-center mt-2">
 				<div class="join">

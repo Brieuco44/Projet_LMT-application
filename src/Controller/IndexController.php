@@ -15,7 +15,7 @@ final class IndexController extends AbstractController
         $this->userRepository = $userRepository;
     }
 
-    #[Route('/', name: 'app_index')]
+    #[Route('/', name: 'app_home')]
     #[IsGranted('ROLE_USER')]
     public function index(): Response
     {

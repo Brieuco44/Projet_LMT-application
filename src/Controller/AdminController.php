@@ -204,4 +204,19 @@ final class AdminController extends AbstractController
             ]);
         }
     }
+
+    #[Route('/admin/livrable', name: 'admin_gestion_livrable')]
+    public function gestionLivrable(TypeLivrableRepository $repo): Response
+    {
+        $typeLivrables = $repo->findAll();
+
+        foreach ($typeLivrables as $livrable) {
+            $path = $this->getParameter('kernel.project_dir') . '/public/uploads/pdf/' . $livrable->getPath();
+            $livrable->hasFile = file_exists($path);
+        }
+
+        return $this->render('admin/livrable/gestionLivrable.html.twig', [
+            'ListLivrable' => $typeLivrables,
+        ]);
+    }
 }
