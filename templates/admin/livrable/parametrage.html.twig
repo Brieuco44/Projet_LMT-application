@@ -74,8 +74,14 @@
 												<i class="fa-regular fa-trash-can"></i>Supprimer la zone
 											</button>
 										</form>
-										<button class="btn btn-outline btn-secondary" data-zone-id="{{ zone.id }}">
-											<i class="fa-regular fa-pen-to-square"></i>Modifier les coordonées
+										<!-- Correction du bouton Modifier coordonnées -->
+										<button
+												class="btn btn-outline btn-secondary"
+												data-zone-id="{{ zone.id }}"
+												id="updateZone"
+										>
+											<i class="fa-regular fa-pen-to-square"></i>
+											Modifier les coordonnées
 										</button>
 									</div>
 									<div id="zone-{{ zone.id }}-champs-list" class="flex flex-col mt-2">

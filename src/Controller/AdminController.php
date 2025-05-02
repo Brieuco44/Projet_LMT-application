@@ -10,6 +10,7 @@ use App\Entity\Zone;
 use App\Form\TypeLivrableType;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -186,6 +187,48 @@ final class AdminController extends AbstractController
         }
     }
 
+    #[Route('/admin/livrable/zone/{id}/update', name: 'admin_typelivrable_zone_update', methods: ['POST'])]
+    public function updateZone(int $id, Request $request, EntityManagerInterface $entityManager) {
+        $zone = $entityManager->getRepository(Zone::class)->find($id);
+        if (!$zone) {
+            throw $this->createNotFoundException('Zone introuvable.');
+        }
+
+        // 1. Décodage du JSON
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['coords']) || !is_array($data['coords'])) {
+            return new JsonResponse(['error' => 'Données invalides'], 400);
+        }
+
+        // 2. Mise à jour des propriétés
+        $coords = $data['coords'];
+        $zone->setCoordonnees([
+            'x1' => (int)$coords['x1'],
+            'y1' => (int)$coords['y1'],
+            'x2' => (int)$coords['x2'],
+            'y2' => (int)$coords['y2'],
+        ]);
+        if (isset($data['page'])) {
+            $zone->setPage((int)$data['page']);
+        }
+
+        $entityManager->flush();
+
+        // 3. Réponse Turbo Stream ou JSON selon l’appel
+        if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+            // On renvoie un fragment qui pourra mettre à jour l’UI
+            return $this->render('admin/livrable/_zone_updated.stream.html.twig', [
+                'zone' => $zone,
+            ], new Response('', 200, ['Content-Type' => TurboBundle::STREAM_FORMAT]));
+        }
+
+        // 4. Réponse JSON basique
+        return new JsonResponse([
+            'status' => 'ok',
+            'zoneId' => $zone->getId(),
+            'coords' => $coords,
+        ]);
+    }
 
     #[Route('/admin/livrable/zone/{id}/delete', name: 'admin_typelivrable_zone_delete', methods: ['DELETE'])]
     public function deleteZone(int $id, EntityManagerInterface $entityManager, Request $request)

@@ -246,6 +246,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       .getElementById("addZoneBtn")
       ?.addEventListener("click", setupDrawing);
 
+    document.querySelectorAll('button[data-zone-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const zoneId = Number(btn.dataset.zoneId); // <-- ici on caste en Number
+        console.log(zoneId, drawnZones);
+
+        const zone = drawnZones.find(z => z.id === zoneId);
+        console.log(zone);
+
+        if (!zone) return;
+        updateZone(zone,zoneId);
+      });
+    });
+
     document.getElementById("prevPage")?.addEventListener("click", async () => {
       if (currentPage > 1) {
         currentPage--;
@@ -290,9 +303,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         fill: "rgba(255,0,0,0.1)",
         stroke: "red",
         strokeWidth: 1,
-        selectable: true,
+        selectable: false,
         visible: false,
-        hasControls: true,
+        hasControls: false,
         lockRotation: true
       });
 
@@ -370,6 +383,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     fabricCanvas.renderAll();
   }
 
+   function updateZone(zone,zoneId) {
+
+      zone.fabricObj.set({ selectable: true, hasControls: true, lockRotation: false, evented: true, stroke: 'blue' });
+      fabricCanvas.setActiveObject(zone.fabricObj);
+      fabricCanvas.renderAll();
+
+      const onObjectModified = async (e) => {
+        if (e.target !== zone.fabricObj) return;
+
+        // Recalculer les coords PDF
+        const coords = {
+          x1: Math.round(zone.fabricObj.left * PyRatio.x),
+          y1: Math.round(zone.fabricObj.top * PyRatio.y),
+          x2: Math.round((zone.fabricObj.left + zone.fabricObj.width * zone.fabricObj.scaleX) * PyRatio.x),
+          y2: Math.round((zone.fabricObj.top + zone.fabricObj.height * zone.fabricObj.scaleY) * PyRatio.y)
+        };
+
+        try {
+          const response = await fetch(
+              `/admin/livrable/zone/${zoneId}/update`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ coords, page: zone.page })
+              }
+          );
+          if (!response.ok) throw new Error('Erreur serveur');
+
+          zone.fabricObj.set({ selectable: false, evented: false, stroke: 'red' });
+          fabricCanvas.discardActiveObject();
+          fabricCanvas.renderAll();
+        } catch(err) {
+          console.error('Mise à jour de zone échouée', err);
+        }
+
+        fabricCanvas.off('object:modified', onObjectModified);
+      };
+
+      fabricCanvas.on('object:modified', onObjectModified);
+  }
+
+
   document.querySelectorAll('#zone-list .collapse').forEach(collapseEl => {
     const checkbox = collapseEl.querySelector('input[type="checkbox"]');
     if (!checkbox) return;
@@ -390,5 +445,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 });
-
 
