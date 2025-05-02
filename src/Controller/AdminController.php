@@ -76,13 +76,26 @@ final class AdminController extends AbstractController
         if (!$typeLivrable) {
             throw $this->createNotFoundException('livrable non trouvé.');
         }
+
         $formZone = $this->createForm(ZoneType::class);
         $formZone->handleRequest($request);
+
         if ($formZone->isSubmitted() && $formZone->isValid()) {
-            $zone = $formZone->getData();
+            $zone = $formZone->getData(); // coordonnees n'est pas mappé automatiquement
+
+            $raw = $formZone->get('coordonnees')->getData();
+            $decoded = json_decode($raw, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                throw new \RuntimeException('JSON invalide pour les coordonnées.');
+            }
+
+            $zone->setCoordonnees($decoded);
             $zone->setTypeLivrable($typeLivrable);
+
             $entityManager->persist($zone);
             $entityManager->flush();
+
             if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
                 $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
                 return $this->render('admin/livrable/_insert_zone.stream.html.twig', [
@@ -90,10 +103,11 @@ final class AdminController extends AbstractController
                 ]);
             }
         }
+
+
         return $this->render('admin/livrable/parametrage.html.twig', [
             'typeLivrable' => $typeLivrable,
             'formZone' => $formZone->createView(),
-
         ]);
     }
 
