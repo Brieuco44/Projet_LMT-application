@@ -194,13 +194,11 @@ final class AdminController extends AbstractController
             throw $this->createNotFoundException('Zone introuvable.');
         }
 
-        // 1. Décodage du JSON
         $data = json_decode($request->getContent(), true);
         if (!isset($data['coords']) || !is_array($data['coords'])) {
             return new JsonResponse(['error' => 'Données invalides'], 400);
         }
 
-        // 2. Mise à jour des propriétés
         $coords = $data['coords'];
         $zone->setCoordonnees([
             'x1' => (int)$coords['x1'],
@@ -214,15 +212,12 @@ final class AdminController extends AbstractController
 
         $entityManager->flush();
 
-        // 3. Réponse Turbo Stream ou JSON selon l’appel
         if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
-            // On renvoie un fragment qui pourra mettre à jour l’UI
             return $this->render('admin/livrable/_zone_updated.stream.html.twig', [
                 'zone' => $zone,
             ], new Response('', 200, ['Content-Type' => TurboBundle::STREAM_FORMAT]));
         }
 
-        // 4. Réponse JSON basique
         return new JsonResponse([
             'status' => 'ok',
             'zoneId' => $zone->getId(),
