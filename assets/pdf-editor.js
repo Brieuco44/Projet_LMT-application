@@ -92,7 +92,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         ),
       };
 
-      // updateZoneList(); // Mise à jour de la liste des zones
     });
   };
 
@@ -135,14 +134,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById(
       "pageInfo"
     ).innerText = `Page ${pageNum} sur ${totalPages}`; // Mise à jour de l'info de page
-    if (pageNum == totalPages) {
+    if (pageNum === totalPages) {
       document.getElementById("nextPage").classList.add("btn-disabled"); // Masquer le bouton "Suivant" si on est à la dernière page
       document.getElementById('nextPage').classList.add("cursor-not-allowed");
     } else {
       document.getElementById("nextPage").classList.remove("btn-disabled");
       document.getElementById("nextPage").classList.remove("cursor-not-allowed");
     }
-    if (pageNum == 1) {
+    if (pageNum === 1) {
       document.getElementById("prevPage").classList.add("btn-disabled"); // Masquer le bouton "Précédent" si on est à la première page
       document.getElementById('prevPage').classList.add("cursor-not-allowed");
     } else {
@@ -251,6 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (currentPage > 1) {
         currentPage--;
         await renderPage(currentPage);
+        loadExistingZones();
       }
     });
 
@@ -258,10 +258,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (currentPage < totalPages) {
         currentPage++;
         await renderPage(currentPage);
+        loadExistingZones();
       }
     });
   };
 
+  // Chargement des zones existantes dans le PDF
   const initialZones = JSON.parse(container.dataset.zones || '[]');
 
 
@@ -373,7 +375,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!checkbox) return;
     checkbox.addEventListener('change', () => {
       const id = collapseEl.id;
-      console.log(id);
+
       if (checkbox.checked) {
         document.querySelectorAll('#zone-list .collapse input[type="checkbox"]').forEach(otherCb => {
           if (otherCb !== checkbox && otherCb.checked) {
