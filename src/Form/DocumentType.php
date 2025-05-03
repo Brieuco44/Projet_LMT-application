@@ -31,9 +31,9 @@ class DocumentType extends AbstractType
             ])
             ->add('files', FileType::class, [
                 'label' => 'Fichiers',
+                'multiple' => true,
                 'attr' => [
                     'class' => 'file-input',
-                    'multiple' => true,
                     'accept' => '.pdf',
                 ],
                 'mapped' => false, // This field is not mapped to the entity

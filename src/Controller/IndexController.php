@@ -2,20 +2,23 @@
 
 namespace App\Controller;
 
+use App\Entity\Document;
 use App\Form\DocumentType;
 use App\Repository\DocumentRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\UtilisateurRepository;
 use App\Repository\TypeLivrableRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 final class IndexController extends AbstractController
 {
-    public function __construct(private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo)
-    {
-    }
+    public function __construct(private EntityManagerInterface $entityManager, private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private HttpClientInterface $httpClient) {}
 
     #[Route('/', name: 'app_home')]
     #[IsGranted('ROLE_USER')]
@@ -28,11 +31,50 @@ final class IndexController extends AbstractController
     }
 
 
-    #[Route('/document/form', name: 'document_form', methods: ['GET'])]
+    #[Route('/document/form/upload', name: 'document_form', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function documentForm(): Response
     {
         $formDocument = $this->createForm(DocumentType::class);
+        return $this->render('index/_formDocument.html.twig', [
+            'formDocument' => $formDocument->createView(),
+        ]);
+    }
+
+    #[Route('/document/form/upload', name: 'document_upload', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function uploadDocumentForm(Request $request): Response
+    {
+        $formDocument = $this->createForm(DocumentType::class);
+        $formDocument->handleRequest($request);
+        if ($formDocument->isSubmitted() && $formDocument->isValid()) {
+            $typeLivrableId = $formDocument->get('TypeLivrable')->getData();
+            /** @var UploadedFile[] $files */
+            $files = $formDocument->get('files')->getData();
+            foreach ($files as $file) {
+                $response = $this->httpClient->request('POST', $_SERVER['API_URL'], [
+                    'body' => [
+                        'pdffile' => fopen($file->getPathname(), 'r'),
+                        'typelivrable' => $typeLivrableId,
+                    ],
+                ]);
+                if ($response->getStatusCode() === 200) {
+                    dd('OK', $response->getContent());
+
+                    $data = $response->toArray();
+                    $document = new Document();
+                    $document->setNom($data['nom']);
+                    $document->setTypeLivrable($this->TypeLivrableRepo->find($typeLivrable));
+                    $document->setDateAjout(new \DateTime());
+                    $this->entityManager->persist($document);
+                    $this->entityManager->flush();
+                } else {
+                    // Handle error
+                    dd((string)$response->getStatusCode(), $response->getContent());
+                    $this->addFlash('error', 'Erreur lors de l\'upload du document.');
+                }
+            }
+        }
         return $this->render('index/_formDocument.html.twig', [
             'formDocument' => $formDocument->createView(),
         ]);
