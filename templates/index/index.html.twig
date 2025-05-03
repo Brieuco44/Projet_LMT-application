@@ -21,32 +21,29 @@
 					</tr>
 				</thead>
 				<tbody>
-					{# <tr>
-						<td>4226884</td>
-						<td>
-							<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewbox="0 0 512 512"><path fill="#63E6BE" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
-						</td>
-						<td>Charte d'adhesion</td>
-						<td>Fichier conforme</td>
-						<td>
-							<button type="button" onclick="my_modal_1.showModal()" class="btn btn-sm btn-success text-white">
-								<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewbox="0 0 512 512"><path fill="#ffffff" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
-								Voir</button>
-						</td>
-					</tr>
-					<tr>
-						<td>6642824</td>
-						<td>
-							<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewbox="0 0 512 512"><path fill="#e11428" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/></svg>
-						</td>
-						<td>Fiche d'émmargement</td>
-						<td>Fichier conforme</td>
-						<td>
-							<button type="button" onclick="my_modal_1.showModal()" class="btn btn-sm btn-success text-white">
-								<svg xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewbox="0 0 512 512"><path fill="#ffffff" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
-								Voir</button>
-						</td>
-					</tr> #}
+					{% for document in documents %}
+						<tr>
+							<td>{{ document.id }}</td>
+							<td>
+								{% if document.status == 1 %}
+									<i class="fa-solid fa-circle-check text-success"></i>
+								{% elseif document.statut == 2 %}
+									<i class="fa-solid fa-circle-exclamation text-warning"></i>
+								{% else %}
+									<i class="fa-solid fa-circle-xmark text-error"></i>
+								{% endif %}
+							</td>
+							<td>
+								{{ document.typeLivrable }}
+							</td>
+							<td>
+								<button class="btn btn-primary">
+									<i class="fa-solid fa-magnifying-glass"></i>
+									Voir
+								</button>
+							</td>
+						</tr>
+					{% endfor %}
 				</tbody>
 			</table>
 		</div>

@@ -28,6 +28,9 @@ class Document
     #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'document')]
     private Collection $controles;
 
+    #[ORM\ManyToOne(inversedBy: 'Document')]
+    private ?Statut $statut = null;
+
     public function __construct()
     {
         $this->controles = new ArrayCollection();
@@ -88,6 +91,18 @@ class Document
                 $controle->setDocument(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statut
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?Statut $statut): static
+    {
+        $this->statut = $statut;
 
         return $this;
     }

@@ -21,13 +21,9 @@ final class IndexController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function index(): Response
     {
-
-        $documents = $this->documentRepo->findAll();
-        
-
         return $this->render('index/index.html.twig', [
             'typeLivrables' => $this->TypeLivrableRepo->findAll(),
-            'documents' => $documents,
+            'documents' => $this->documentRepo->findAll(),
         ]);
     }
 
