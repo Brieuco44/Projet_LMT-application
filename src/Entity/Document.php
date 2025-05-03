@@ -20,13 +20,16 @@ class Document
     private ?\DateTimeInterface $date = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
-    private ?typeLivrable $typeLivrable = null;
+    private ?TypeLivrable $typeLivrable = null;
 
     /**
      * @var Collection<int, Controle>
      */
     #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'document')]
     private Collection $controles;
+
+    #[ORM\ManyToOne(inversedBy: 'Document')]
+    private ?Statut $statut = null;
 
     public function __construct()
     {
@@ -50,12 +53,12 @@ class Document
         return $this;
     }
 
-    public function getTypeLivrable(): ?typeLivrable
+    public function getTypeLivrable(): ?TypeLivrable
     {
         return $this->typeLivrable;
     }
 
-    public function setTypeLivrable(?typeLivrable $typeLivrable): static
+    public function setTypeLivrable(?TypeLivrable $typeLivrable): static
     {
         $this->typeLivrable = $typeLivrable;
 
@@ -88,6 +91,18 @@ class Document
                 $controle->setDocument(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statut
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?Statut $statut): static
+    {
+        $this->statut = $statut;
 
         return $this;
     }
