@@ -1,6 +1,10 @@
 <turbo-stream action="append" target="zone-list">
 	<template>
-		<div class="collapse collapse-arrow bg-base-200 border-base-300 border m-5" id="zone-{{ zone.id }}">
+		<div class="zone-item collapse collapse-arrow bg-base-200 border-base-300 border m-5"
+			 id="zone-{{ zone.id }}"
+			 data-zone-id="{{ zone.id }}"
+			 data-zone-page="{{ zone.page }}"
+			 data-zone-coords="{{ zone.coordonnees|json_encode|e('html_attr') }}">
 			<input type="checkbox"/>
 			<h3 class="collapse-title font-semibold">{{ zone.libelle }}</h3>
 			<div class="collapse-content">
@@ -14,8 +18,12 @@
 								<i class="fa-regular fa-trash-can"></i>Supprimer la zone
 							</button>
 						</form>
-						<button class="btn btn-outline btn-secondary" data-zone-id="{{ zone.id }}">
-							<i class="fa-regular fa-pen-to-square"></i>Modifier les coordonées
+						<button
+								class="btn btn-outline btn-secondary"
+								data-zone-id="{{ zone.id }}"
+								id="s">
+							<i class="fa-regular fa-pen-to-square"></i>
+							Modifier les coordonnées
 						</button>
 					</div>
 					<div id="zone-{{ zone.id }}-champs-list" class="flex flex-col mt-2">

@@ -10,6 +10,7 @@ use App\Entity\Zone;
 use App\Form\TypeLivrableType;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -75,13 +76,26 @@ final class AdminController extends AbstractController
         if (!$typeLivrable) {
             throw $this->createNotFoundException('livrable non trouvé.');
         }
+
         $formZone = $this->createForm(ZoneType::class);
         $formZone->handleRequest($request);
+
         if ($formZone->isSubmitted() && $formZone->isValid()) {
-            $zone = $formZone->getData();
+            $zone = $formZone->getData(); // coordonnees n'est pas mappé automatiquement
+
+            $raw = $formZone->get('coordonnees')->getData();
+            $decoded = json_decode($raw, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                throw new \RuntimeException('JSON invalide pour les coordonnées.');
+            }
+
+            $zone->setCoordonnees($decoded);
             $zone->setTypeLivrable($typeLivrable);
+
             $entityManager->persist($zone);
             $entityManager->flush();
+
             if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
                 $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
                 return $this->render('admin/livrable/_insert_zone.stream.html.twig', [
@@ -89,10 +103,11 @@ final class AdminController extends AbstractController
                 ]);
             }
         }
+
+
         return $this->render('admin/livrable/parametrage.html.twig', [
             'typeLivrable' => $typeLivrable,
             'formZone' => $formZone->createView(),
-
         ]);
     }
 
@@ -186,6 +201,43 @@ final class AdminController extends AbstractController
         }
     }
 
+    #[Route('/admin/livrable/zone/{id}/update', name: 'admin_typelivrable_zone_update', methods: ['POST'])]
+    public function updateZone(int $id, Request $request, EntityManagerInterface $entityManager) {
+        $zone = $entityManager->getRepository(Zone::class)->find($id);
+        if (!$zone) {
+            throw $this->createNotFoundException('Zone introuvable.');
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['coords']) || !is_array($data['coords'])) {
+            return new JsonResponse(['error' => 'Données invalides'], 400);
+        }
+
+        $coords = $data['coords'];
+        $zone->setCoordonnees([
+            'x1' => (int)$coords['x1'],
+            'y1' => (int)$coords['y1'],
+            'x2' => (int)$coords['x2'],
+            'y2' => (int)$coords['y2'],
+        ]);
+        if (isset($data['page'])) {
+            $zone->setPage((int)$data['page']);
+        }
+
+        $entityManager->flush();
+
+        if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+            return $this->render('admin/livrable/_zone_updated.stream.html.twig', [
+                'zone' => $zone,
+            ], new Response('', 200, ['Content-Type' => TurboBundle::STREAM_FORMAT]));
+        }
+
+        return new JsonResponse([
+            'status' => 'ok',
+            'zoneId' => $zone->getId(),
+            'coords' => $coords,
+        ]);
+    }
 
     #[Route('/admin/livrable/zone/{id}/delete', name: 'admin_typelivrable_zone_delete', methods: ['DELETE'])]
     public function deleteZone(int $id, EntityManagerInterface $entityManager, Request $request)
@@ -203,5 +255,20 @@ final class AdminController extends AbstractController
                 'zoneId' => $id,
             ]);
         }
+    }
+
+    #[Route('/admin/livrable', name: 'admin_gestion_livrable')]
+    public function gestionLivrable(TypeLivrableRepository $repo): Response
+    {
+        $typeLivrables = $repo->findAll();
+
+        foreach ($typeLivrables as $livrable) {
+            $path = $this->getParameter('kernel.project_dir') . '/public/uploads/pdf/' . $livrable->getPath();
+            $livrable->hasFile = file_exists($path);
+        }
+
+        return $this->render('admin/livrable/gestionLivrable.html.twig', [
+            'ListLivrable' => $typeLivrables,
+        ]);
     }
 }
