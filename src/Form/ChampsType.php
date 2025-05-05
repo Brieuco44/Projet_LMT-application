@@ -2,12 +2,12 @@
 
 namespace App\Form;
 
+use App\Entity\Zone;
 use App\Entity\Champs;
 use App\Entity\TypeChamps;
-use App\Entity\Zone;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ChampsType extends AbstractType

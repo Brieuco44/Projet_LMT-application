@@ -2,23 +2,25 @@
 
 namespace App\Controller;
 
+use GuzzleHttp\Client;
 use App\Entity\Document;
 use App\Form\DocumentType;
+use App\Repository\ChampsRepository;
+use App\Service\ComparaisonService;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
-use GuzzleHttp\Client;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class IndexController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $entityManager, private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private HttpClientInterface $httpClient) {}
+    public function __construct(private EntityManagerInterface $entityManager, private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private HttpClientInterface $httpClient, private ComparaisonService $comparaisonService) {}
 
     #[Route('/', name: 'app_home')]
     #[IsGranted('ROLE_USER')]
@@ -49,22 +51,20 @@ final class IndexController extends AbstractController
         $formDocument = $this->createForm(DocumentType::class);
         $formDocument->handleRequest($request);
         if ($formDocument->isSubmitted() && $formDocument->isValid()) {
-            $typeLivrableId = $formDocument->get('TypeLivrable')->getData();
-
+            $typeLivrable = $formDocument->get('TypeLivrable')->getData();
             /** @var UploadedFile[] $files */
             $files = $formDocument->get('files')->getData();
-            
             foreach ($files as $file) {
-            
+
                 $stream = fopen($file->getPathname(), 'r');
-            
+
                 if ($stream === false) {
-                    throw new \RuntimeException('Impossible d’ouvrir le fichier : '.$file->getClientOriginalName());
+                    throw new \RuntimeException('Impossible d’ouvrir le fichier : ' . $file->getClientOriginalName());
                 }
 
                 $response = $client->request('POST', $_SERVER['API_URL'], [
                     'headers' => [
-                        'Accept' => 'application/json', // facultatif
+                        'Accept' => 'application/json',
                     ],
                     'multipart' => [
                         [
@@ -77,20 +77,19 @@ final class IndexController extends AbstractController
                         ],
                         [
                             'name' => 'typelivrable',
-                            'contents' => $typeLivrableId->getId(),
+                            'contents' => $typeLivrable->getId(),
                         ]
                     ],
                 ]);
                 if ($response->getStatusCode() === 200) {
-                    dd('OK', $response->getStatusCode(), $response->getBody()->getContents());
-
-                    $data = $response->toArray();
+                    $dataOCR = json_decode($response->getBody()->getContents(), true);
                     $document = new Document();
-                    $document->setNom($data['nom']);
-                    $document->setTypeLivrable($this->TypeLivrableRepo->find($typeLivrableId));
-                    $document->setDateAjout(new \DateTime());
+                    $document->setDate(new \DateTime());
+                    $document->setTypeLivrable($typeLivrable);
                     $this->entityManager->persist($document);
                     $this->entityManager->flush();
+                    $this->comparaisonService->compareDocuments($typeLivrable, $document->getId(), $dataOCR);
+                    dd('done');
                 } else {
                     // Handle error
                     dd((string)$response->getStatusCode(), $response->getBody()->getContents());
