@@ -130,6 +130,7 @@ final class AdminController extends AbstractController
     public function formChamps(Request $request, EntityManagerInterface $entityManager, ComparaisonService $comparaisonService): Response
     {
         $headers = $comparaisonService->getExportHeaders() ?? [];
+
         $formChamps = $this->createForm(ChampsType::class, null, [
             'headers' => $headers,
         ]);
@@ -151,6 +152,7 @@ final class AdminController extends AbstractController
     {
         $zoneId = $request->query->get('zone_id');
         $zone = $em->getRepository(Zone::class)->find($zoneId);
+
         $champs = new Champs();
         if ($zone) {
             $champs->setZone($zone);
@@ -182,6 +184,12 @@ final class AdminController extends AbstractController
         $formChamps->handleRequest($request);
 
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
+            // si c'est Signature, on force question et donneeERP à ''
+            if ($champs->getTypeChamps()->getNom() === 'Signature') {
+                $champs->setQuestion('');
+                $champs->setDonneeERP('');
+            }
+
             $champs->setZone($zone); // Deplacé ici car champs écrasé sinon
             $em->persist($champs);
             $em->flush();

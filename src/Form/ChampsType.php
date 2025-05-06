@@ -7,6 +7,7 @@ use App\Entity\Champs;
 use App\Entity\TypeChamps;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -19,15 +20,18 @@ class ChampsType extends AbstractType
 
         $builder
             ->add('nom')
-            ->add('question')
+            ->add('question',TextType::class, [
+                'required' => false,
+            ])
             ->add('donneeERP', ChoiceType::class, [
                 'choices' => array_combine($headers, $headers),
                 'placeholder' => 'Sélectionner une donnée ERP',
                 'required' => false,
             ])
             ->add('typeChamps', EntityType::class, [
-                'class' => TypeChamps::class,
+                'class'        => TypeChamps::class,
                 'choice_label' => 'nom',
+                'choice_attr'  => fn(TypeChamps $tc) => ['data-nom' => $tc->getNom()],
             ])
             ->add('zone', EntityType::class, [
                 'class' => Zone::class,
