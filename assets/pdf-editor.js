@@ -241,7 +241,7 @@ document.addEventListener("turbo:load", async () => {
     const zoneList = document.getElementById("zone-list");
     zoneList.addEventListener("click", (e) => {
       const btn = /** @type {HTMLButtonElement} */ (e.target);
-      if (!btn.matches("button[data-zoneupdate-id]")) return;
+      if (!btn.matches("button[data-zone-id]")) return;
 
       const zoneId = Number(btn.dataset.zoneId);
       console.log("clicked zone:", zoneId, drawnZones);
