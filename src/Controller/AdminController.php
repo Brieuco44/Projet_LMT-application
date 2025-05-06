@@ -171,10 +171,8 @@ final class AdminController extends AbstractController
     {
         $zoneId = $request->query->get('zone_id');
         $zone = $em->getRepository(Zone::class)->find($zoneId);
+
         $champs = new Champs();
-        if ($zone) {
-            $champs->setZone($zone);
-        }
 
         $headers = $comparaisonService->getExportHeaders() ?? [];
         $formChamps = $this->createForm(ChampsType::class, $champs,[
@@ -184,8 +182,10 @@ final class AdminController extends AbstractController
         $formChamps->handleRequest($request);
 
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
+            $champs->setZone($zone); // Deplacé ici car champs écrasé sinon
             $em->persist($champs);
             $em->flush();
+
             if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
                 $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
                 return $this->render('admin/livrable/_insert_champs.stream.html.twig', [
