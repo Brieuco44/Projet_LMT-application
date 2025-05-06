@@ -2,8 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\ControleRepository;
+use App\Entity\Champs;
+use App\Entity\Statut;
+use App\Entity\Document;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ControleRepository;
 
 #[ORM\Entity(repositoryClass: ControleRepository::class)]
 class Controle
@@ -17,9 +20,9 @@ class Controle
     private ?Document $document = null;
 
     #[ORM\ManyToOne(inversedBy: 'controles')]
-    private ?champs $champs = null;
+    private ?Champs $champs = null;
 
-    #[ORM\ManyToOne(inversedBy: 'Controle')]
+    #[ORM\ManyToOne(inversedBy: 'controless')]
     private ?Statut $statut = null;
 
     public function getId(): ?int

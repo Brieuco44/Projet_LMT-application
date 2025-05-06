@@ -16,7 +16,7 @@ class Statut
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $Libelle = null;
+    private ?string $libelle = null;
 
     /**
      * @var Collection<int, Document>
@@ -43,12 +43,12 @@ class Statut
 
     public function getLibelle(): ?string
     {
-        return $this->Libelle;
+        return $this->libelle;
     }
 
-    public function setLibelle(string $Libelle): static
+    public function setLibelle(string $libelle): static
     {
-        $this->Libelle = $Libelle;
+        $this->libelle = $libelle;
 
         return $this;
     }

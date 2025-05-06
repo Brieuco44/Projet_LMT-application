@@ -16,6 +16,58 @@ class StatutRepository extends ServiceEntityRepository
         parent::__construct($registry, Statut::class);
     }
 
+    /**
+     * @return Statut
+     */
+    public function getStatutConforme(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'Conforme')
+            ->getQuery()
+            ->getOneOrNullResult() 
+        ;
+    }
+
+    /**
+     * @return Statut
+     */
+    public function getStatutNonConforme(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'Non conforme')
+            ->getQuery()
+            ->getOneOrNullResult() 
+        ;
+    }
+
+    /**
+     * @return Statut
+     */
+    public function getStatutReverifier(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'à revérifier')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+    /**
+     * @return Statut
+     */
+    public function getStatutPbParametre(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'Problème de paramétrage ')
+            ->getQuery()
+            ->getOneOrNullResult() 
+        ;
+    }
+
 //    /**
 //     * @return Statut[] Returns an array of Statut objects
 //     */

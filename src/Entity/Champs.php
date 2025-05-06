@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Zone;
+use App\Entity\Controle;
 use App\Entity\TypeChamps;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ChampsRepository;
