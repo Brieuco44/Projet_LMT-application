@@ -134,4 +134,25 @@ class ComparaisonService
         }
         return null;
     }
+
+    /**
+     * Load and return the header list from the export file.
+     *
+     * @return array|null
+     */
+    public function getExportHeaders(): ?array
+    {
+        if (!file_exists($this->exportFile)) {
+            return null;
+        }
+
+        if (($handle = fopen($this->exportFile, 'r')) !== false) {
+            $headers = fgetcsv($handle, 1000, ';');
+            fclose($handle);
+            return $headers ?: null;
+        }
+
+        return null;
+    }
+
 }

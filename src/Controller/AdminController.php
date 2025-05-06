@@ -8,6 +8,7 @@ use App\Form\ChampsType;
 use App\Entity\TypeLivrable;
 use App\Entity\Zone;
 use App\Form\TypeLivrableType;
+use App\Service\ComparaisonService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -126,22 +127,27 @@ final class AdminController extends AbstractController
         ]);
     }
     #[Route('/_formChamps', name: 'admin_typelivrable_champs_form')]
-    public function formChamps(Request $request, EntityManagerInterface $entityManager): Response
+    public function formChamps(Request $request, EntityManagerInterface $entityManager, ComparaisonService $comparaisonService): Response
     {
-        $formChamps = $this->createForm(ChampsType::class);
+        $headers = $comparaisonService->getExportHeaders() ?? [];
+        $formChamps = $this->createForm(ChampsType::class, null, [
+            'headers' => $headers,
+        ]);
         $formChamps->handleRequest($request);
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
             $champs = $formChamps->getData();
             $entityManager->persist($champs);
             $entityManager->flush();
         }
+
+
         return $this->render('admin/livrable/_formChamps.html.twig', [
             'formChamps' => $formChamps->createView(),
         ]);
     }
 
     #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form', methods: ['GET'])]
-    public function champsForm(Request $request, EntityManagerInterface $em): Response
+    public function champsForm(Request $request, EntityManagerInterface $em, ComparaisonService $comparaisonService): Response
     {
         $zoneId = $request->query->get('zone_id');
         $zone = $em->getRepository(Zone::class)->find($zoneId);
@@ -150,15 +156,18 @@ final class AdminController extends AbstractController
             $champs->setZone($zone);
         }
 
-        $formChamps = $this->createForm(ChampsType::class, $champs);
+        $headers = $comparaisonService->getExportHeaders() ?? [];
+        $formChamps = $this->createForm(ChampsType::class, null, [
+            'headers' => $headers,
+        ]);
 
         return $this->render('admin/livrable/_formChamps.html.twig', [
-            'formChamps' => $formChamps,
+            'formChamps' => $formChamps
         ]);
     }
 
     #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form_submit', methods: ['POST'])]
-    public function champsFormSubmit(Request $request, EntityManagerInterface $em)
+    public function champsFormSubmit(Request $request, EntityManagerInterface $em, ComparaisonService $comparaisonService)
     {
         $zoneId = $request->query->get('zone_id');
         $zone = $em->getRepository(Zone::class)->find($zoneId);
@@ -167,7 +176,11 @@ final class AdminController extends AbstractController
             $champs->setZone($zone);
         }
 
-        $formChamps = $this->createForm(ChampsType::class, $champs);
+        $headers = $comparaisonService->getExportHeaders() ?? [];
+        $formChamps = $this->createForm(ChampsType::class, $champs,[
+            'headers' => $headers,
+        ]);
+
         $formChamps->handleRequest($request);
 
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
