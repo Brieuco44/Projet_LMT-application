@@ -66,7 +66,7 @@
 							<div class="collapse-content">
 								<div class="flex flex-col">
 									<div class="flex flex-row justify-between">
-										<button class="btn btn-outline btn-success" data-zone-id="{{ zone.id }}" onclick="openAddChampsModal({{ zone.id }})">
+										<button class="btn btn-outline btn-success" data-zoneadd-id="{{ zone.id }}" onclick="openAddChampsModal({{ zone.id }})">
 											<i class="fa-solid fa-plus"></i>Ajouter un champs
 										</button>
 										<form method="delete" action="{{ path('admin_typelivrable_zone_delete', { 'id': zone.id }) }}">

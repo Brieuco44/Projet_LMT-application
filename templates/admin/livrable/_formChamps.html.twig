@@ -1,22 +1,64 @@
 <turbo-frame id="champs_form">
-	{{ form_start(formChamps, { action: path('admin_typelivrable_champs_form_submit', { 'zone_id': app.request.get('zone_id') }), attr: { 'data-turbo-frame': '_top' } }) }}
-	<div class="form-control mb-4">
-		{{ form_label(formChamps.nom) }}
-		{{ form_widget(formChamps.nom, {'attr': {'class': 'input input-bordered w-full'}}) }}
-	</div>
-	<div class="form-control mb-4">
-		{{ form_label(formChamps.question) }}
-		{{ form_widget(formChamps.question, {'attr': {'class': 'input input-bordered w-full'}}) }}
-	</div>
-	<div class="form-control mb-4">
-		{{ form_label(formChamps.donneeERP) }}
-		{{ form_widget(formChamps.donneeERP, {'attr': {'class': 'input input-bordered w-full'}}) }}
-	</div>
+	{{ form_start(formChamps, {
+		action: path('admin_typelivrable_champs_form_submit', { zone_id: app.request.get('zone_id') }),
+		attr: { 'data-turbo-frame': '_top' }
+	}) }}
+
+	{# typeChamps #}
 	<div class="form-control mb-4">
 		{{ form_label(formChamps.typeChamps) }}
 		{{ form_widget(formChamps.typeChamps, {'attr': {'class': 'input input-bordered w-full'}}) }}
 	</div>
+
+	{# nom #}
+	<div class="form-control mb-4">
+		{{ form_label(formChamps.nom) }}
+		{{ form_widget(formChamps.nom, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+
+	{# question (wrapper) #}
+	<div id="question-field" class="form-control mb-4">
+		{{ form_label(formChamps.question) }}
+		{{ form_widget(formChamps.question, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+
+	{# donneeERP #}
+	<div id="donnee-erp-field" class="form-control mb-4">
+		{{ form_label(formChamps.donneeERP) }}
+		{{ form_widget(formChamps.donneeERP, {'attr': {'class': 'input input-bordered w-full'}}) }}
+	</div>
+
 	{{ form_widget(formChamps.zone, {'attr': {'class': 'hidden'}}) }}
+
 	<button type="submit" class="btn btn-primary">Enregistrer</button>
 	{{ form_end(formChamps) }}
+
+	<script>
+		(function(){
+			const typeSelect     = document.getElementById('{{ formChamps.typeChamps.vars.id }}');
+			const questionDiv    = document.getElementById('question-field');
+			const questionInput  = document.getElementById('{{ formChamps.question.vars.id }}');
+			const donneeDiv      = document.getElementById('donnee-erp-field');
+			const donneeInput    = document.getElementById('{{ formChamps.donneeERP.vars.id }}');
+
+			function toggleFields() {
+				const nom         = typeSelect.selectedOptions[0].dataset.nom;
+				const isSignature = nom === 'Signature';
+
+				// Question
+				questionDiv.style.display = isSignature ? 'none' : '';
+				questionInput.disabled    = isSignature;
+				if (isSignature) questionInput.value = '';
+
+				// Donnée ERP
+				donneeDiv.style.display = isSignature ? 'none' : '';
+				donneeInput.disabled    = isSignature;
+				if (isSignature) donneeInput.value = '';
+			}
+
+			typeSelect.addEventListener('change', toggleFields);
+			toggleFields();
+		})();
+	</script>
+
 </turbo-frame>
