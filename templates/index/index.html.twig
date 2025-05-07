@@ -25,19 +25,19 @@
 						<tr>
 							<td>{{ document.id }}</td>
 							<td>
-								{% if document.status == 1 %}
+								{% if document.statut.id == 1 %}
 									<i class="fa-solid fa-circle-check text-success"></i>
-								{% elseif document.statut == 2 %}
+								{% elseif document.statut.id == 2 %}
 									<i class="fa-solid fa-circle-exclamation text-warning"></i>
 								{% else %}
 									<i class="fa-solid fa-circle-xmark text-error"></i>
 								{% endif %}
 							</td>
 							<td>
-								{{ document.typeLivrable }}
+								{{ document.typeLivrable.nom }}
 							</td>
 							<td>
-								<button class="btn btn-primary">
+								<button class="btn btn-primary" onclick="viewDocument({{ document.id }})">
 									<i class="fa-solid fa-magnifying-glass"></i>
 									Voir
 								</button>

@@ -89,7 +89,7 @@ final class IndexController extends AbstractController
                     $this->entityManager->persist($document);
                     $this->entityManager->flush();
                     $this->comparaisonService->compareDocuments($typeLivrable, $document->getId(), $dataOCR);
-                    dd('done');
+                    dd($this->documentRepo->find($document->getId()));
                 } else {
                     // Handle error
                     dd((string)$response->getStatusCode(), $response->getBody()->getContents());
