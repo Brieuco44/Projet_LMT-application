@@ -12,7 +12,7 @@ use App\Repository\TypeLivrableRepository;
 
 class ComparaisonService
 {
-    private string $exportFile = 'uploads/export-erp/extract-projet ocr.csv';
+    private string $exportFile = 'uploads/export-erp/extract-projet-ocr.csv';
     private ?Statut $statutDoc = null;
     private Statut $nonConformeStatut;
     private Statut $reverifierStatut;
@@ -22,7 +22,8 @@ class ComparaisonService
      * @param TypeLivrableRepository $TypeLivrableRepo
      * @param DocumentRepository $documentRepo
      */
-    public function __construct(private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private EntityManagerInterface $entityManager, private StatutRepository $statutRepo) {
+    public function __construct(private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private EntityManagerInterface $entityManager, private StatutRepository $statutRepo)
+    {
         $this->conformeStatut = $this->statutRepo->getStatutConforme();
         $this->nonConformeStatut = $this->statutRepo->getStatutNonConforme();
         $this->reverifierStatut = $this->statutRepo->getStatutReverifier();
@@ -34,33 +35,38 @@ class ComparaisonService
         $dataERP = $this->getLigneExport($typeLivrable->getId(), $dataOCR);
         $document = $this->documentRepo->find($idDocument);
         $zones = $typeLivrable->getZones();
-        foreach ($zones as $key => $zone) {
-            foreach ($zone->getChamps() as $champ) {
-                $controle = new Controle();
-                $controle->setChamps($champ);
-                $controle->setDocument($document);
-                if (!array_key_exists($champ->getDonneeERP(), $dataERP) ) {
-                    $controle->setStatut($this->statutRepo->getStatutPbParametre());
-                }elseif ($dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()] === null) {
-                    $controle->setStatut($this->statutRepo->getStatutChampsInexistant());
-                } else {
-                    switch ($champ->getTypeChamps()->getNom()) {
-                        case 'Identifiant':
-                        case 'Text':
-                            $controle->setStatut($this->verifyText($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
-                            break;
-                        case 'Date':
-                        case 'Date manuscrite':
-                            $controle->setStatut($this->verifyDate($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
-                            break;
-                        case 'Signature':
-                        case 'Case cochée':
-                            $controle->setStatut($this->conformeStatut);
-                            break;
+        if ($dataERP === null) {
+            $statutDoc = $this->statutRepo->getStatutIdentifiantIntrouvable();
+            $document->setStatut($statutDoc);
+        } else {
+            foreach ($zones as $key => $zone) {
+                foreach ($zone->getChamps() as $champ) {
+                    $controle = new Controle();
+                    $controle->setChamps($champ);
+                    $controle->setDocument($document);
+                    if ($dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()] === null) {
+                        $controle->setStatut($this->statutRepo->getStatutChampsInexistant());
+                    } elseif (!array_key_exists($champ->getDonneeERP(), $dataERP)) {
+                        $controle->setStatut($this->statutRepo->getStatutPbParametre());
+                    } else {
+                        switch ($champ->getTypeChamps()->getNom()) {
+                            case 'Identifiant':
+                            case 'Text':
+                                $controle->setStatut($this->verifyText($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
+                                break;
+                            case 'Date':
+                            case 'Date manuscrite':
+                                $controle->setStatut($this->verifyDate($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
+                                break;
+                            case 'Signature':
+                            case 'Case cochée':
+                                $controle->setStatut($this->conformeStatut);
+                                break;
+                        }
                     }
+                    $this->entityManager->persist($controle);
+                    $this->entityManager->flush();
                 }
-                $this->entityManager->persist($controle);
-                $this->entityManager->flush();
             }
         }
         $document->setStatut($statutDoc);
@@ -170,5 +176,4 @@ class ComparaisonService
 
         return [];
     }
-
 }

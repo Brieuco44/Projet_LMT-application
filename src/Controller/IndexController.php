@@ -92,19 +92,20 @@ final class IndexController extends AbstractController
                     $this->entityManager->persist($document);
                     $this->entityManager->flush();
                     $this->comparaisonService->compareDocuments($typeLivrable, $document->getId(), $dataOCR);
-                    if ($request->getPreferredFormat()=== TurboBundle::STREAM_FORMAT) {
+                    if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
                         $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                        $formDocument = $this->createForm(DocumentType::class);
+
                         return $this->render('index/_insert_document.stream.html.twig', [
                             'document' => $document,
+                            'formDocument' => $formDocument->createView(),
                         ]);
                     }
-
                 } else {
                     // Handle error
                     dd((string)$response->getStatusCode(), $response->getBody()->getContents());
                     $this->addFlash('error', 'Erreur lors de l\'upload du document.');
                 }
-                
             }
         }
         return $this->render('index/_formDocument.html.twig', [

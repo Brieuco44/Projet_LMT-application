@@ -1,4 +1,5 @@
 <turbo-stream action="append" target="tabresultsTableBody">
+<template>
 	<tr>
 		<td>{{ document.nom }}</td>
 		<td>
@@ -20,6 +21,7 @@
 			</button>
 		</td>
 	</tr>
+    </template>
 </turbo-stream>
 
 <turbo-stream action="append" target="alert">
@@ -32,3 +34,19 @@
         </div>
     </template>
 </turbo-stream>
+
+<turbo-frame id="document-frame">
+	{{ form_start(formDocument, { 'attr': { 'data-turbo-frame': 'document-frame', 'enctype': 'multipart/form-data' }, action: path('document_upload') }) }}
+	<fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+		<legend class="fieldset-legend">Ajouter des documents</legend>
+		{{ form_label(formDocument.TypeLivrable) }}
+		{{ form_widget(formDocument.TypeLivrable) }}
+
+		{{ form_label(formDocument.files) }}
+		{{ form_widget(formDocument.files)}}
+
+		<button class="btn btn-success mt-4" type="submit">Analyser</button>
+	</fieldset>
+	{{ form_end(formDocument) }}
+</turbo-frame>
+
