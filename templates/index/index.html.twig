@@ -9,21 +9,29 @@
 		</turbo-frame>
 	</div>
 
+	<div id="alert">
+	</div>
+
 	<div class="flex justify-center">
 		<div class="m-5 w-1/2">
 			<table id="resultsTable" class="table">
 				<thead>
 					<tr>
-						<th>Id bénéficiaire</th>
+						<th>Nom du document</th>
 						<th>État</th>
 						<th>Type de document</th>
 						<th></th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody id="resultsTableBody">
+					{% if documents is empty %}
+						<tr>
+							<td colspan="4" class="text-center">Aucun document trouvé</td>
+						</tr>
+					{% endif %}
 					{% for document in documents %}
 						<tr>
-							<td>{{ document.id }}</td>
+							<td>{{ document.nom }}</td>
 							<td>
 								{% if document.statut.id == 1 %}
 									<i class="fa-solid fa-circle-check text-success"></i>

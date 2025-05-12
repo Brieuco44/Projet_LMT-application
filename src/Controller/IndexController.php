@@ -17,6 +17,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\UX\Turbo\Helper\TurboStream;
+use Symfony\UX\Turbo\TurboBundle;
 
 final class IndexController extends AbstractController
 {
@@ -86,15 +88,23 @@ final class IndexController extends AbstractController
                     $document = new Document();
                     $document->setDate(new \DateTime());
                     $document->setTypeLivrable($typeLivrable);
+                    $document->setNom($file->getClientOriginalName());
                     $this->entityManager->persist($document);
                     $this->entityManager->flush();
                     $this->comparaisonService->compareDocuments($typeLivrable, $document->getId(), $dataOCR);
-                    dd($this->documentRepo->find($document->getId()));
+                    if ($request->getPreferredFormat()=== TurboBundle::STREAM_FORMAT) {
+                        $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                        return $this->render('index/_insert_document.stream.html.twig', [
+                            'document' => $document,
+                        ]);
+                    }
+
                 } else {
                     // Handle error
                     dd((string)$response->getStatusCode(), $response->getBody()->getContents());
                     $this->addFlash('error', 'Erreur lors de l\'upload du document.');
                 }
+                
             }
         }
         return $this->render('index/_formDocument.html.twig', [

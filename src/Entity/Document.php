@@ -34,6 +34,9 @@ class Document
     #[ORM\ManyToOne(inversedBy: 'Document')]
     private ?Statut $statut = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
     public function __construct()
     {
         $this->controles = new ArrayCollection();
@@ -106,6 +109,18 @@ class Document
     public function setStatut(?Statut $statut): static
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): static
+    {
+        $this->nom = $nom;
 
         return $this;
     }

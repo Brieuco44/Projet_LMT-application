@@ -1,5 +1,5 @@
 <turbo-frame id="document-frame">
-	{{ form_start(formDocument, { 'attr': { 'data-turbo-frame': 'document-frame', 'enctype': 'multipart/form-data' } }) }}
+	{{ form_start(formDocument, { 'attr': { 'data-turbo-frame': 'document-frame', 'enctype': 'multipart/form-data' }, action: path('document_upload') }) }}
 	<fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
 		<legend class="fieldset-legend">Ajouter des documents</legend>
 		{{ form_label(formDocument.TypeLivrable) }}

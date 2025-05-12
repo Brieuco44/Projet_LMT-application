@@ -13,7 +13,7 @@ use App\Repository\TypeLivrableRepository;
 class ComparaisonService
 {
     private string $exportFile = 'uploads/export-erp/extract-projet ocr.csv';
-    private Statut $statutDoc;
+    private ?Statut $statutDoc = null;
     private Statut $nonConformeStatut;
     private Statut $reverifierStatut;
     private Statut $conformeStatut;
@@ -41,6 +41,8 @@ class ComparaisonService
                 $controle->setDocument($document);
                 if (!array_key_exists($champ->getDonneeERP(), $dataERP) ) {
                     $controle->setStatut($this->statutRepo->getStatutPbParametre());
+                }elseif ($dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()] === null) {
+                    $controle->setStatut($this->statutRepo->getStatutChampsInexistant());
                 } else {
                     switch ($champ->getTypeChamps()->getNom()) {
                         case 'Identifiant':
@@ -86,7 +88,7 @@ class ComparaisonService
             $statut = $this->conformeStatut;
         } elseif ($dateERP != $dateOCR) {
             $statut = $this->nonConformeStatut;
-            $this->statutDoc = $this->statutDoc !== $this->nonConformeStatut ? $this->nonConformeStatut : $this->statutDoc;
+            $this->statutDoc = $this->nonConformeStatut;
         }
         return $statut;
     }
@@ -157,16 +159,16 @@ class ComparaisonService
     public function getExportHeaders(): ?array
     {
         if (!file_exists($this->exportFile)) {
-            return null;
+            return [];
         }
 
         if (($handle = fopen($this->exportFile, 'r')) !== false) {
             $headers = fgetcsv($handle, 1000, ';');
             fclose($handle);
-            return $headers ?: null;
+            return $headers ?: [];
         }
 
-        return null;
+        return [];
     }
 
 }

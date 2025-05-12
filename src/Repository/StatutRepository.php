@@ -68,6 +68,18 @@ class StatutRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return Statut
+     */
+    public function getStatutChampsInexistant(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'Champ inexistant')
+            ->getQuery()
+            ->getOneOrNullResult() 
+        ;
+    }
 
 //    /**
 //     * @return Statut[] Returns an array of Statut objects
