@@ -1,0 +1,36 @@
+<turbo-frame id="affichageControles">
+        {% if controles is not null %}
+            <div class="overscroll-y-auto max-h-96">
+                <div class="m-5">
+                    <h2 class="text-lg font-bold">{{ document.nom }}</h2>
+                    <h4 class="text-md text-secondary italic">{{ document.typeLivrable.nom }}</h4>
+                </div>
+                {% for controle in controles %}
+                    <div class="m-2">
+                        <p>
+                            <div class="tooltip" data-tip="{{ controle.statut.libelle }}">
+                                {% if controle.statut.id == 1 %}
+                                    <i class="fa-solid fa-lg fa-circle-check text-success"></i>
+                                {% elseif controle.statut.id == 2 %}
+                                    <i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+                                {% elseif controle.statut.id == 3 %}
+                                    <i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+                                {% elseif controle.statut.id == 4 %}
+                                    <i class="fa-solid fa-lg fa-circle-question text-secondary"></i>
+                                {% elseif controle.statut.id == 5 %}
+                                    <i class="fa-solid fa-lg fa-circle-minus text-success"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+                                {% endif %}
+                            </div>
+                            <span class=""> {{ controle.champs.nom }}</span>
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="flex justify-center">
+                <div class="loading loading-xl loading-spinner text-primary h-96"></div>
+            </div>
+        {% endif %}
+</turbo-frame>

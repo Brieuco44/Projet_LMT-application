@@ -9,8 +9,7 @@
 		</turbo-frame>
 	</div>
 
-	<div id="alert">
-	</div>
+	<div id="alert"></div>
 
 	<div class="flex justify-center">
 		<div class="m-5 w-1/2">
@@ -32,21 +31,21 @@
 					{% for document in documents %}
 						<tr>
 							<td>{{ document.nom }}</td>
-							<td>
+							<td class="text-center">
 								{% if document.statut.id == 1 %}
-									<i class="fa-solid fa-circle-check text-success"></i>
+									<i class="fa-solid fa-lg fa-circle-check text-success"></i>
 								{% elseif document.statut.id == 2 %}
-									<i class="fa-solid fa-circle-exclamation text-warning"></i>
+									<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
 								{% else %}
-									<i class="fa-solid fa-circle-xmark text-error"></i>
+									<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
 								{% endif %}
 							</td>
 							<td>
 								{{ document.typeLivrable.nom }}
 							</td>
 							<td>
-								<button class="btn btn-primary" onclick="viewDocument({{ document.id }})">
-									<i class="fa-solid fa-magnifying-glass"></i>
+								<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
+									<i class="fa-solid fa-lg fa-magnifying-glass"></i>
 									Voir
 								</button>
 							</td>
@@ -56,4 +55,26 @@
 			</table>
 		</div>
 	</div>
+	<dialog id="modalControles" class="modal">
+		<div class="modal-box">
+			<turbo-frame id="affichageControles" src="{{ url('affichage_controle')}}" loading="lazy">
+				<div class="flex justify-center">
+					<div class="loading loading-xl loading-spinner text-primary h-96"></div>
+				</div>
+			</turbo-frame>
+		</div>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+	<script>
+		function openVoirControlesModal(documentID) {
+			const turboFrame = document.getElementById('affichageControles');
+			turboFrame.src = `/document/controles/?id=` + documentID;
+
+			// Afficher la modale
+			const modal = document.getElementById('modalControles');
+			modal.showModal();
+		}
+	</script>
 {% endblock %}
