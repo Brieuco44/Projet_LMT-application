@@ -36,7 +36,7 @@ class StatutRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('s')
             ->andWhere('s.libelle = :val')
-            ->setParameter('val', 'Non conforme')
+            ->setParameter('val', 'Non Conforme')
             ->getQuery()
             ->getOneOrNullResult() 
         ;
@@ -68,6 +68,31 @@ class StatutRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return Statut
+     */
+    public function getStatutChampsInexistant(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'Champ inexistant')
+            ->getQuery()
+            ->getOneOrNullResult() 
+        ;
+    }
+
+        /**
+     * @return Statut
+     */
+    public function getStatutIdentifiantIntrouvable(): Statut
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.libelle = :val')
+            ->setParameter('val', 'Identifiant introuvable')
+            ->getQuery()
+            ->getOneOrNullResult() 
+        ;
+    }
 
 //    /**
 //     * @return Statut[] Returns an array of Statut objects
