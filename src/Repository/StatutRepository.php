@@ -62,7 +62,7 @@ class StatutRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('s')
             ->andWhere('s.libelle = :val')
-            ->setParameter('val', 'Problème de paramétrage ')
+            ->setParameter('val', 'Problème de paramétrage')
             ->getQuery()
             ->getOneOrNullResult() 
         ;

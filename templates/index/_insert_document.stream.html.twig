@@ -1,52 +1,45 @@
-<turbo-stream action="append" target="tabresultsTableBody">
-<template>
-	<tr>
-		<td>{{ document.nom }}</td>
-		<td>
-			{% if document.statut.id == 1 %}
-				<i class="fa-solid fa-circle-check text-success"></i>
-			{% elseif document.statut.id == 2 %}
-				<i class="fa-solid fa-circle-exclamation text-warning"></i>
-			{% else %}
-				<i class="fa-solid fa-circle-xmark text-error"></i>
-			{% endif %}
-		</td>
-		<td>
-			{{ document.typeLivrable.nom }}
-		</td>
-		<td>
-			<button class="btn btn-primary" onclick="viewDocument({{ document.id }})">
-				<i class="fa-solid fa-magnifying-glass"></i>
-				Voir
-			</button>
-		</td>
-	</tr>
-    </template>
+<turbo-stream action="prepend" target="tabresultsTableBody">
+	<template>
+		<tr>
+			<td>{{ document.nom }}</td>
+			<td class="text-center">
+				{% if document.statut is not null %}
+					{% if document.statut.id == 1 %}
+						<i class="fa-solid fa-lg fa-circle-check text-success"></i>
+					{% elseif document.statut.id == 2 %}
+						<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+					{% else %}
+						<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+					{% endif %}
+				{% else %}
+					<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+				{% endif %}
+			</td>
+			<td>
+				{{ document.typeLivrable.nom }}
+			</td>
+			<td>
+				{% if document.statut is not null %}
+					<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
+						<i class="fa-solid fa-lg fa-magnifying-glass"></i>
+						Voir
+					</button>
+				{% endif %}
+			</td>
+		</tr>
+	</template>
 </turbo-stream>
 
 <turbo-stream action="append" target="alert">
-    <template>
-        <div class="alert alert-success shadow-lg">
-            <div>
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Document ajouté avec succès</span>
-            </div>
-        </div>
-    </template>
+	<template>
+		<div id="toast-success" class="toast-top toast-end toast">
+			<div class="alert alert-success shadow-lg">
+				<i class="fa-solid fa-circle-check"></i>
+				<span>Document ajouté avec succès</span>
+				<button class="btn btn-sm btn-circle btn-ghost" onclick="closeToast()">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
+		</div>
+	</template>
 </turbo-stream>
-
-<turbo-frame id="document-frame">
-	{{ form_start(formDocument, { 'attr': { 'data-turbo-frame': 'document-frame', 'enctype': 'multipart/form-data' }, action: path('document_upload') }) }}
-	<fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-		<legend class="fieldset-legend">Ajouter des documents</legend>
-		{{ form_label(formDocument.TypeLivrable) }}
-		{{ form_widget(formDocument.TypeLivrable) }}
-
-		{{ form_label(formDocument.files) }}
-		{{ form_widget(formDocument.files)}}
-
-		<button class="btn btn-success mt-4" type="submit">Analyser</button>
-	</fieldset>
-	{{ form_end(formDocument) }}
-</turbo-frame>
-

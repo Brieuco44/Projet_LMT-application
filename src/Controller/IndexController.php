@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use App\Entity\Document;
 use App\Form\DocumentType;
 use App\Repository\ChampsRepository;
+use App\Repository\ControleRepository;
 use App\Service\ComparaisonService;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +23,7 @@ use Symfony\UX\Turbo\TurboBundle;
 
 final class IndexController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $entityManager, private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private HttpClientInterface $httpClient, private ComparaisonService $comparaisonService) {}
+    public function __construct(private EntityManagerInterface $entityManager, private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private HttpClientInterface $httpClient, private ComparaisonService $comparaisonService, private ControleRepository $controleRepo) {}
 
     #[Route('/', name: 'app_home')]
     #[IsGranted('ROLE_USER')]
@@ -114,5 +115,25 @@ final class IndexController extends AbstractController
         return $this->render('index/_formDocument.html.twig', [
             'formDocument' => $formDocument->createView(),
         ]);
+    }
+
+    #[Route('/document/controles', name: 'affichage_controle')]
+    public function afficherControles(Request $request, ChampsRepository $champsRepository, ?int $id): Response
+    {
+        // $controles = null;
+        $id = $request->query->get('id');
+        if ($id) {
+            $document = $this->documentRepo->find($id);
+            if (!$document) {
+                throw $this->createNotFoundException('Document non trouvé');
+            }
+            $controles = $this->controleRepo->findBy(['document' => $document]);
+        }
+
+        return $this->render('index/_controles.html.twig', [
+            'controles' => $controles ?? null,
+            'document' => $document ?? null,
+        ]);
+
     }
 }

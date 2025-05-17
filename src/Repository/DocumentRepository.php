@@ -17,6 +17,17 @@ class DocumentRepository extends ServiceEntityRepository
         parent::__construct($registry, Document::class);
     }
 
+    /**
+     * @return Document[] Returns an array of Document objects
+     */
+    public function findAllDesc(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->orderBy('d.date', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return Document[] Returns an array of Document objects
 //     */
