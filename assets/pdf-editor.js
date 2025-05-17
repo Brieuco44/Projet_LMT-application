@@ -2,6 +2,7 @@ import * as fabric from "fabric";
 import * as pdfjsLib from "pdfjs-dist";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.js?url";
 import * as Turbo from "@hotwired/turbo";
+
 Turbo.start();
 
 // Configuration du worker pour PDF.js
@@ -88,6 +89,7 @@ document.addEventListener("turbo:load", async () => {
         };
       });
     };
+
 
     // Rendu d'une page du PDF sur le canvas
     const renderPage = async (pageNum) => {
@@ -251,22 +253,6 @@ document.addEventListener("turbo:load", async () => {
 
       updateZone(zone, zoneId);
     });
-
-    document.getElementById("prevPage")?.addEventListener("click", async () => {
-      if (currentPage > 1) {
-        currentPage--;
-        await renderPage(currentPage);
-        loadExistingZones();
-      }
-    });
-
-    document.getElementById("nextPage")?.addEventListener("click", async () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        await renderPage(currentPage);
-        loadExistingZones();
-      }
-    });
   };
 
   let initialZones = JSON.parse(container.dataset.zones || '[]');
@@ -326,20 +312,6 @@ document.addEventListener("turbo:load", async () => {
   await createFabricCanvas(currentPage);
   setupControls();
   await renderPageWithZones(currentPage);
-
-  // Update prev/next page handlers to use renderPageWithZones
-  document.getElementById("prevPage")?.addEventListener("click", async () => {
-    if (currentPage > 1) {
-      currentPage--;
-      await renderPageWithZones(currentPage);
-    }
-  });
-  document.getElementById("nextPage")?.addEventListener("click", async () => {
-    if (currentPage < totalPages) {
-      currentPage++;
-      await renderPageWithZones(currentPage);
-    }
-  });
 
   /**
    * Show rectangles on the fabric canvas for a given zone collapse ID
@@ -468,5 +440,20 @@ document.addEventListener("turbo:load", async () => {
     }
   });
 
+  document.getElementById("nextPage").addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderPageWithZones(currentPage);
+    }
+  });
+
+  document.getElementById("prevPage").addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPageWithZones(currentPage);
+    }
+  });
+
 });
+
 
