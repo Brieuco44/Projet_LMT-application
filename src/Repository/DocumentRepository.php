@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Document;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,13 @@ class DocumentRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    public function findByUser(Utilisateur $user): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    }
 }
