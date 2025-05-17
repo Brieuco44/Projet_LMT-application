@@ -2,15 +2,12 @@
 
 
 {% block body %}
-
+	<div id="alert"></div>
 	<div class="flex justify-center">
 		<turbo-frame id="document-frame" src="{{ url('document_form') }}" loading="lazy">
 			<div class="skeleton w-80 h-64"></div>
 		</turbo-frame>
 	</div>
-
-	<div id="alert"></div>
-
 	<div class="flex justify-center">
 		<div class="m-5 w-1/2">
 			<table id="resultsTable" class="table">
@@ -75,12 +72,17 @@
 	</dialog>
 	<script>
 		function openVoirControlesModal(documentID) {
-const turboFrame = document.getElementById('affichageControles');
-turboFrame.src = `/document/controles/?id=` + documentID;
+			const turboFrame = document.getElementById('affichageControles');
+			turboFrame.src = `/document/controles/?id=` + documentID;
 
-// Afficher la modale
-const modal = document.getElementById('modalControles');
-modal.showModal();
-}
+			// Afficher la modale
+			const modal = document.getElementById('modalControles');
+			modal.showModal();
+		}
+
+		function closeToast() {
+			const toast = document.getElementById('toast-success');
+			toast.remove();
+		}
 	</script>
 {% endblock %}

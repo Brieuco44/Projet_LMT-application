@@ -49,7 +49,6 @@ class ComparaisonService
                     if ($dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()] === null) {
                         $controle->setStatut($this->statutRepo->getStatutChampsInexistant());
                     } else {
-                        $this->logger->info('Donnée OCR (' . $champ->getNom() . ') : ' . $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]);
                         switch ($champ->getTypeChamps()->getNom()) {
                             case 'Identifiant':
                             case 'Text':

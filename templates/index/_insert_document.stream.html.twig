@@ -32,9 +32,14 @@
 
 <turbo-stream action="append" target="alert">
 	<template>
-		<div class="alert alert-success shadow-lg">
-			<i class="fa-solid fa-circle-check"></i>
-			<span>Document ajouté avec succès</span>
+		<div id="toast-success" class="toast-top toast-end toast">
+			<div class="alert alert-success shadow-lg">
+				<i class="fa-solid fa-circle-check"></i>
+				<span>Document ajouté avec succès</span>
+				<button class="btn btn-sm btn-circle btn-ghost" onclick="closeToast()">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
 		</div>
 	</template>
 </turbo-stream>
