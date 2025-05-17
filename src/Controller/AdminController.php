@@ -8,6 +8,7 @@ use App\Form\ChampsType;
 use App\Entity\TypeLivrable;
 use App\Entity\Zone;
 use App\Form\TypeLivrableType;
+use App\Repository\UtilisateurRepository;
 use App\Service\ComparaisonService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
