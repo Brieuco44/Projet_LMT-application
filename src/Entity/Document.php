@@ -39,7 +39,20 @@ class Document
     private ?string $nom = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
+
+    public function getUser(): ?Utilisateur
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Utilisateur $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 
     public function __construct()
     {
