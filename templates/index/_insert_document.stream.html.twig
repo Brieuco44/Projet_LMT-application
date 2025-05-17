@@ -1,24 +1,30 @@
-<turbo-stream action="append" target="tabresultsTableBody">
+<turbo-stream action="prepend" target="tabresultsTableBody">
 	<template>
 		<tr>
 			<td>{{ document.nom }}</td>
-			<td>
-				{% if document.statut.id == 1 %}
-					<i class="fa-solid fa-circle-check text-success"></i>
-				{% elseif document.statut.id == 2 %}
-					<i class="fa-solid fa-circle-exclamation text-warning"></i>
+			<td class="text-center">
+				{% if document.statut is not null %}
+					{% if document.statut.id == 1 %}
+						<i class="fa-solid fa-lg fa-circle-check text-success"></i>
+					{% elseif document.statut.id == 2 %}
+						<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+					{% else %}
+						<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+					{% endif %}
 				{% else %}
-					<i class="fa-solid fa-circle-xmark text-error"></i>
+					<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
 				{% endif %}
 			</td>
 			<td>
 				{{ document.typeLivrable.nom }}
 			</td>
 			<td>
-				<button class="btn btn-primary {{ if document.statut.id == 6 }} btn-disabled {{ endif }}" onclick="viewDocument({{ document.id }})">
-					<i class="fa-solid fa-magnifying-glass"></i>
-					Voir
-				</button>
+				{% if document.statut is not null %}
+					<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
+						<i class="fa-solid fa-lg fa-magnifying-glass"></i>
+						Voir
+					</button>
+				{% endif %}
 			</td>
 		</tr>
 	</template>
@@ -32,4 +38,3 @@
 		</div>
 	</template>
 </turbo-stream>
-

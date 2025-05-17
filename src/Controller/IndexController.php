@@ -31,7 +31,7 @@ final class IndexController extends AbstractController
     {
         return $this->render('index/index.html.twig', [
             'typeLivrables' => $this->TypeLivrableRepo->findAll(),
-            'documents' => $this->documentRepo->findAll(),
+            'documents' => $this->documentRepo->findAllDesc(),
         ]);
     }
 
@@ -90,6 +90,7 @@ final class IndexController extends AbstractController
                     $document->setDate(new \DateTime());
                     $document->setTypeLivrable($typeLivrable);
                     $document->setNom($file->getClientOriginalName());
+                    $document->setUser($this->getUser());
                     $this->entityManager->persist($document);
                     $this->entityManager->flush();
                     $this->comparaisonService->compareDocuments($typeLivrable, $document->getId(), $dataOCR);

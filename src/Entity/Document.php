@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Statut;
 use App\Entity\Controle;
 use App\Entity\TypeLivrable;
+use App\Entity\Utilisateur;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\DocumentRepository;
@@ -36,6 +37,9 @@ class Document
 
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
+
+    #[ORM\ManyToOne(inversedBy: 'documents')]
+    private ?Utilisateur $user = null;
 
     public function __construct()
     {
@@ -121,6 +125,18 @@ class Document
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getUser(): ?Utilisateur
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Utilisateur $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

@@ -9,6 +9,8 @@ use App\Repository\StatutRepository;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 class ComparaisonService
 {
@@ -22,36 +24,36 @@ class ComparaisonService
      * @param TypeLivrableRepository $TypeLivrableRepo
      * @param DocumentRepository $documentRepo
      */
-    public function __construct(private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private EntityManagerInterface $entityManager, private StatutRepository $statutRepo)
+    public function __construct(private LoggerInterface $logger, private TypeLivrableRepository $TypeLivrableRepo, private DocumentRepository $documentRepo, private EntityManagerInterface $entityManager, private StatutRepository $statutRepo)
     {
         $this->conformeStatut = $this->statutRepo->getStatutConforme();
         $this->nonConformeStatut = $this->statutRepo->getStatutNonConforme();
         $this->reverifierStatut = $this->statutRepo->getStatutReverifier();
+        $this->statutDoc = $this->conformeStatut;
     }
 
     public function compareDocuments(TypeLivrable $typeLivrable, int $idDocument, array $dataOCR): void
     {
-        $statutDoc = $this->statutRepo->getStatutConforme();
         $dataERP = $this->getLigneExport($typeLivrable->getId(), $dataOCR);
         $document = $this->documentRepo->find($idDocument);
         $zones = $typeLivrable->getZones();
         if ($dataERP === null) {
-            $statutDoc = $this->statutRepo->getStatutIdentifiantIntrouvable();
-            $document->setStatut($statutDoc);
+            $this->statutDoc = $this->statutRepo->getStatutIdentifiantIntrouvable();
+            $document->setStatut($this->statutDoc);
         } else {
-            foreach ($zones as $key => $zone) {
+            foreach ($zones as $zone) {
                 foreach ($zone->getChamps() as $champ) {
                     $controle = new Controle();
                     $controle->setChamps($champ);
                     $controle->setDocument($document);
                     if ($dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()] === null) {
                         $controle->setStatut($this->statutRepo->getStatutChampsInexistant());
-                    } elseif (!array_key_exists($champ->getDonneeERP(), $dataERP)) {
-                        $controle->setStatut($this->statutRepo->getStatutPbParametre());
                     } else {
+                        $this->logger->info('Donnée OCR (' . $champ->getNom() . ') : ' . $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]);
                         switch ($champ->getTypeChamps()->getNom()) {
                             case 'Identifiant':
                             case 'Text':
+                            case 'Num commande':
                                 $controle->setStatut($this->verifyText($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
                                 break;
                             case 'Date':
@@ -60,16 +62,26 @@ class ComparaisonService
                                 break;
                             case 'Signature':
                             case 'Case cochée':
-                                $controle->setStatut($this->conformeStatut);
+                                $controle->setStatut($this->verifyBoolean($dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
+                                break;
+                            default:
+                                $controle->setStatut($this->nonConformeStatut);
                                 break;
                         }
                     }
                     $this->entityManager->persist($controle);
                     $this->entityManager->flush();
+
+                    if ($controle->getStatut() === $this->nonConformeStatut) {
+                        $this->statutDoc = $this->nonConformeStatut;
+                    } elseif ($this->statutDoc === $this->conformeStatut && $controle->getStatut() === $this->reverifierStatut) {
+                        $this->statutDoc = $this->reverifierStatut;
+                    }
                 }
             }
         }
-        $document->setStatut($statutDoc);
+        $document->setStatut($this->statutDoc);
+
         $this->entityManager->persist($document);
         $this->entityManager->flush();
     }
@@ -79,22 +91,24 @@ class ComparaisonService
      * @param string $dataERP
      * @return Statut
      */
-    public function verifyDate(string $dataOCR, string $dataERP): Statut
+    public function verifyDate(string $dataERP, string $dataOCR): Statut
     {
         $statut = null;
+        if ($dataOCR === 'Aucune date trouvée ou date non reconnue') {
+            return $this->reverifierStatut;
+        }
         $dateOCR = \DateTime::createFromFormat('d/m/Y', $dataOCR);
-        $dateERP = \DateTime::createFromFormat('d/m/Y', $dataERP);
+        $dateERP = \DateTime::createFromFormat('Y-m-d', $dataERP);
         if ($dateOCR === false || $dateERP === false) {
-            // Handle the error if the date format is incorrect
             $statut = $this->reverifierStatut;
-            $this->statutDoc = $this->statutDoc === $this->conformeStatut ? $this->reverifierStatut : $this->statutDoc;
             return $statut;
         }
+        $dateOCR = $dateOCR->format('d/m/Y');
+        $dateERP = $dateERP->format('d/m/Y');
         if ($dateERP == $dateOCR) {
             $statut = $this->conformeStatut;
         } elseif ($dateERP != $dateOCR) {
             $statut = $this->nonConformeStatut;
-            $this->statutDoc = $this->nonConformeStatut;
         }
         return $statut;
     }
@@ -104,18 +118,15 @@ class ComparaisonService
      * @param string $dataERP
      * @return Statut
      */
-    public function verifytext(string $dataOCR, string $dataERP): Statut
+    public function verifytext(string $dataERP, string $dataOCR): Statut
     {
         if ($dataERP === $dataOCR) {
             return $this->conformeStatut;
         }
 
         if ($dataERP !== $dataOCR) {
-            $this->statutDoc = $this->statutDoc !== $this->nonConformeStatut ? $this->nonConformeStatut : $this->statutDoc;
             return $this->nonConformeStatut;
         }
-
-        $this->statutDoc = $this->statutDoc === $this->conformeStatut ? $this->reverifierStatut : $this->statutDoc;
         return $this->reverifierStatut;
     }
 
@@ -123,17 +134,18 @@ class ComparaisonService
      * @param string $dataOCR
      * @return Statut
      */
-    public function verifyBoolean(string $dataOCR): Statut
+    public function verifyBoolean(bool $dataOCR): Statut
     {
+        $this->logger->info('Donnée Signature OCR : ' . $dataOCR);
         if ($dataOCR) {
             return $this->conformeStatut;
         }
-
-        $this->statutDoc = $this->statutDoc !== $this->nonConformeStatut ? $this->nonConformeStatut : $this->statutDoc;
-        return $dataOCR === '' ? $this->reverifierStatut : $this->nonConformeStatut;
+        return $dataOCR === false ? $this->nonConformeStatut : $this->reverifierStatut;
     }
 
     /**
+     * Récupère la ligne d'export ERP correspondant à l'identifiant OCR
+     * 
      * @param int $typeLivrableId
      * @param array $data
      * @return array|null
@@ -158,7 +170,7 @@ class ComparaisonService
     }
 
     /**
-     * Load and return the header list from the export file.
+     * Charge le fichier d'export ERP et retourne les en-têtes
      *
      * @return array|null
      */
