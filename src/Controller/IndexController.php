@@ -107,7 +107,7 @@ final class IndexController extends AbstractController
                     }
                 } else {
                     // Handle error
-                    dd((string)$response->getStatusCode(), $response->getBody()->getContents());
+                    //dd((string)$response->getStatusCode(), $response->getBody()->getContents());
                     $this->addFlash('error', 'Erreur lors de l\'upload du document.');
                 }
             }
@@ -118,6 +118,7 @@ final class IndexController extends AbstractController
     }
 
     #[Route('/document/controles', name: 'affichage_controle')]
+    #[IsGranted('ROLE_USER')]
     public function afficherControles(Request $request, ChampsRepository $champsRepository, ?int $id): Response
     {
         // $controles = null;
@@ -135,5 +136,29 @@ final class IndexController extends AbstractController
             'document' => $document ?? null,
         ]);
 
+    }
+
+    #[Route('/document/delete/{id}', name: 'delete_document', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function delete(int $id, Request $request, DocumentRepository $documentRepository): Response
+    {
+        $document = $documentRepository->find($id);
+
+        if (
+            $document
+            && $this->isCsrfTokenValid('delete_document_' . $document->getId(), $request->request->get('_token'))
+        ) {
+            // On garde l'ID en variable avant le flush
+            $docId = $document->getId();
+
+            $this->entityManager->remove($document);
+            $this->entityManager->flush();
+
+            return $this->render('index/_delete_stream.html.twig', [
+                'id' => $docId,
+            ], new Response('', 200, ['Content-Type' => 'text/vnd.turbo-stream.html']));
+        }
+
+        return new Response("Erreur lors de la suppression", 400);
     }
 }

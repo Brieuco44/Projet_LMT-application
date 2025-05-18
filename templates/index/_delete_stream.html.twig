@@ -1,0 +1,16 @@
+<turbo-stream action="remove" target="document-row-{{ id }}">
+</turbo-stream>
+
+<turbo-stream action="append" target="alert">
+    <template>
+        <div id="toast-success" class="toast-top toast-end toast">
+            <div class="alert alert-error shadow-lg">
+                <i class="fa-solid fa-trash"></i>
+                <span>Document supprimé avec succès</span>
+                <button class="btn btn-sm btn-circle btn-ghost" onclick="closeToast()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </template>
+</turbo-stream>

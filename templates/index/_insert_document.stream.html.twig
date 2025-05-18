@@ -1,6 +1,9 @@
+<turbo-stream action="remove" target="none-row">
+</turbo-stream>
+
 <turbo-stream action="prepend" target="tabresultsTableBody">
 	<template>
-		<tr>
+		<tr id="document-row-{{ document.id }}">
 			<td>{{ document.nom }}</td>
 			<td class="text-center">
 				{% if document.statut is not null %}
@@ -25,6 +28,17 @@
 						Voir
 					</button>
 				{% endif %}
+
+
+				<form method="post" action="{{ path('delete_document', { id: document.id }) }}"
+					  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');"
+					  data-turbo="true"
+					  class="d-inline">
+					<input type="hidden" name="_token" value="{{ csrf_token('delete_document_' ~ document.id) }}">
+					<button class="btn btn-danger ms-2">
+						<i class="fa-solid fa-lg fa-trash"></i> Supprimer
+					</button>
+				</form>
 			</td>
 		</tr>
 	</template>
