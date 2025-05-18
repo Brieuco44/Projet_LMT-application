@@ -35,3 +35,74 @@
   --depth: 1;
   --noise: 1;
 }
+
+/* Animation complète pour l’insertion */
+@keyframes slideInBounce {
+  0% {
+    transform: translateX(-100%) scaleX(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(10%) scaleX(1.02);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(-5%) scaleX(0.98);
+  }
+  100% {
+    transform: translateX(0) scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Clé pour la suppression */
+@keyframes slideOutShrink {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(0.9);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(-100%) scale(0.7);
+    opacity: 0;
+  }
+}
+
+/* Classe à appliquer en JS lors de l’insertion */
+.slide-in {
+  animation: slideInBounce 0.6s cubic-bezier(.25,.46,.45,.94) forwards;
+}
+
+/* Classe à appliquer en JS lors de la suppression */
+.slide-out {
+  animation: slideOutShrink 0.5s ease-in forwards;
+}
+
+
+/* Fond gris du cercle */
+.timer-bg {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+/* Trait animé en blanc (ou autre) */
+.timer-fg {
+  stroke: white;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  animation: countdown 5s linear forwards;
+}
+
+/* Keyframes de 100 → 0 sur le dashoffset */
+@keyframes countdown {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 100;
+  }
+}

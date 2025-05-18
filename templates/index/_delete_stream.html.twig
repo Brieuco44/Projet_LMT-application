@@ -1,0 +1,42 @@
+<turbo-stream action="remove" target="document-row-{{ id }}">
+</turbo-stream>
+
+<turbo-stream action="append" target="alert">
+    <template>
+        <div
+                id="toast-success-{{ id }}"
+                class="toast toast-top toast-end"
+                data-toast-id="{{ id }}"
+        >
+            <div class="alert alert-success shadow-lg flex items-center text-white">
+                <i class="fa-solid fa-trash"></i>
+                <span class="flex-1">Document supprimé avec succès</span>
+
+                <div class="relative w-6 h-6">
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 36 36">
+                        <circle
+                                class="timer-bg"
+                                cx="18" cy="18" r="16"
+                                stroke-width="4" fill="none"
+                        />
+                        <circle
+                                class="timer-fg"
+                                cx="18" cy="18" r="16"
+                                stroke-width="4" fill="none"
+                                stroke-linecap="round"
+                        />
+                    </svg>
+                    <button
+                            type="button"
+                            onclick="removeToast('{{ id }}')"
+                            aria-label="Fermer"
+                            class="absolute inset-0 flex items-center justify-center p-0 m-0 leading-none"
+                    >
+                        <i class="fa-solid fa-xmark text-lg leading-none text-white"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </template>
+</turbo-stream>

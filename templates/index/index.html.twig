@@ -2,7 +2,8 @@
 
 
 {% block body %}
-	<div id="alert"></div>
+	<div id="alert">
+	</div>
 	<div class="flex justify-center">
 		<turbo-frame id="document-frame" src="{{ url('document_form') }}" loading="lazy">
 			<div class="skeleton w-80 h-64"></div>
@@ -13,6 +14,7 @@
 			<table id="resultsTable" class="table">
 				<thead>
 					<tr>
+						<th></th>
 						<th>Nom du document</th>
 						<th>État</th>
 						<th>Type de document</th>
@@ -21,39 +23,69 @@
 				</thead>
 				<tbody id="tabresultsTableBody">
 					{% if documents is empty %}
-						<tr>
+						<tr id="none-row">
 							<td colspan="4" class="text-center">Aucun document trouvé</td>
 						</tr>
-					{% endif %}
-					{% for document in documents %}
-						<tr>
-							<td>{{ document.nom }}</td>
-							<td class="text-center">
-								{% if document.statut is not null %}
-									{% if document.statut.id == 1 %}	
-										<i class="fa-solid fa-lg fa-circle-check text-success"></i>
-									{% elseif document.statut.id == 2 %}
-										<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+					{% else %}
+						{% for document in documents %}
+							<tr id="document-row-{{ document.id }}">
+								{# Colonne “delete” avec une croix #}
+								<td class="px-1 text-center">
+									<form
+											method="post"
+											action="{{ path('delete_document', { id: document.id }) }}"
+											onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');"
+											data-turbo="true"
+											class="inline-block"
+									>
+										<input
+												type="hidden"
+												name="_token"
+												value="{{ csrf_token('delete_document_' ~ document.id) }}"
+										>
+										<button
+												type="submit"
+												class="btn btn-ghost btn-sm btn-circle text-error hover:bg-error/10 p-0"
+												title="Supprimer"
+										>
+											<i class="fa-solid fa-xmark"></i>
+										</button>
+									</form>
+								</td>
+
+								{# Ensuite tes colonnes existantes #}
+								<td>{{ document.nom }}</td>
+								<td class="text-center">
+									{% if document.statut %}
+										{% set sid = document.statut.id %}
+										{% if sid == 1 %}
+											<i class="fa-solid fa-circle-check fa-lg text-success"></i>
+										{% elseif sid == 2 %}
+											<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
+										{% else %}
+											<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
+										{% endif %}
 									{% else %}
-										<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+										<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 									{% endif %}
-								{% else %}
-									<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
-								{% endif %}
-							</td>
-							<td>
-								{{ document.typeLivrable.nom }}
-							</td>
-							<td>
-								{% if document.statut is not null %}
-									<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
-										<i class="fa-solid fa-lg fa-magnifying-glass"></i>
-										Voir
-									</button>
-								{% endif %}
-							</td>
-						</tr>
-					{% endfor %}
+								</td>
+								<td>{{ document.typeLivrable.nom }}</td>
+								<td class="whitespace-nowrap">
+									{% if document.statut %}
+										<button
+												class="btn btn-primary btn-sm{% if document.statut.id == 6 %} btn-disabled{% endif %}"
+												onclick="openVoirControlesModal({{ document.id }})"
+										>
+											<i class="fa-solid fa-magnifying-glass"></i>
+											Voir
+										</button>
+									{% endif %}
+								</td>
+							</tr>
+						{% endfor %}
+					{% endif %}
+
+
 				</tbody>
 			</table>
 		</div>
@@ -80,9 +112,85 @@
 			modal.showModal();
 		}
 
-		function closeToast() {
-			const toast = document.getElementById('toast-success');
-			toast.remove();
+
+		let toastCounter = 0;
+		function nextToastId() {
+			return ++toastCounter;
 		}
+		function removeToast(id) {
+			const el = document.getElementById(`toast-success-${id}`);
+			if (el) el.remove();
+		}
+
+		document.addEventListener("turbo:before-stream-render", (e) => {
+			const streamEl = e.target.closest("turbo-stream");
+			if (!streamEl) return;
+
+			const action = streamEl.getAttribute("action");
+			const target = streamEl.getAttribute("target");
+
+			// --- SLIDE-OUT pour suppression de ligne ---
+			if (action === "remove" && target.startsWith("document-row-")) {
+				e.preventDefault();
+				const row = document.getElementById(target);
+				if (!row) return;
+				row.classList.add("slide-out");
+				row.addEventListener("transitionend", () => row.remove(), { once: true });
+				return;
+			}
+
+			// --- SLIDE-IN pour ajout de ligne ---
+			if ((action === "append" || action === "prepend") && target === "tabresultsTableBody") {
+				e.preventDefault();
+				const tpl = streamEl.querySelector("template");
+				if (!tpl) return;
+
+				const clone = document.importNode(tpl.content, true);
+				const newRow = clone.firstElementChild;
+				if (!newRow) return;
+
+				newRow.classList.add("slide-in-start");
+				const container = document.getElementById(target);
+				if (!container) return;
+				if (action === "append") container.appendChild(newRow);
+				else container.insertBefore(newRow, container.firstChild);
+
+				void newRow.offsetWidth; // force reflow
+				newRow.classList.add("slide-in");
+				return;
+			}
+
+			// --- TOASTS pour alertes ---
+			if (action === "append" && target === "alert") {
+				e.preventDefault();
+				const tpl = streamEl.querySelector("template");
+				if (!tpl) return;
+
+				// clone du toast
+				const clone = document.importNode(tpl.content, true);
+				const toast = clone.firstElementChild;
+				// si pas d'ID fourni, on en génère un
+				let id = toast.getAttribute("data-toast-id");
+				if (!id) {
+					id = nextToastId();
+					toast.setAttribute("data-toast-id", id);
+					toast.id = `toast-success-${id}`;
+				}
+
+				// insère en bas (stack)
+				const alertContainer = document.getElementById("alert");
+				if (!alertContainer) return;
+				alertContainer.appendChild(toast);
+
+				// auto-close à la fin du timer SVG (3s)
+				const fg = toast.querySelector(".timer-fg");
+				if (fg) {
+					fg.addEventListener("animationend", () => {
+						if (toast.parentNode) toast.remove();
+					}, { once: true });
+				}
+				return;
+			}
+		});
 	</script>
 {% endblock %}

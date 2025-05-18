@@ -5,41 +5,52 @@
 {% block body %}
     <div class="container mx-auto p-6">
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold mb-4 text-gray-800">Gestion des Livrables</h1>
-            <a href="{{ path('app_ajoutLivrable') }}" class="btn btn-primary">
-                Ajouter un Livrable
-            </a>
+            <h1 class="text-4xl font-bold mb-4">Gestion des Livrables</h1>
+            <a href="{{ path('app_ajoutLivrable') }}" class="btn btn-primary">Ajouter un Livrable</a>
         </div>
 
         {% if ListLivrable is not empty %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {% for livrable in ListLivrable %}
-                    <a href="{{ path('admin_typelivrable_parametrage', { id: livrable.id }) }}" class="block bg-white p-4 shadow-md rounded-lg hover:shadow-xl transition">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ livrable.nom }}</h2>
+                    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition relative">
+                        <div class="card-body">
+                            <h2 class="card-title text-lg font-semibold truncate">{{ livrable.nom }}</h2>
 
-                        {% if livrable.hasFile %}
-                            <div class="aspect-w-4 aspect-h-3">
-                                <iframe src="{{ asset('uploads/pdf/' ~ livrable.path) }}#page=1" class="w-full h-64 rounded border" frameborder="0"></iframe>
+                            {% if livrable.hasFile %}
+                                <div class="w-full h-48 bg-gray-100 rounded overflow-hidden">
+                                    <iframe src="{{ asset('uploads/pdf/' ~ livrable.path) }}#page=1" class="w-full h-full" frameborder="0"></iframe>
+                                </div>
+                            {% else %}
+                                <div class="w-full h-48 flex items-center justify-center bg-gray-50 rounded">
+                                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 9.75h.008v.008H9.75V9.75zM14.25 9.75h.008v.008H14.25V9.75zM12 15.75c1.5 0 2.25-.75 3-1.5m1.5-7.5h-12a1.5 1.5 0 00-1.5 1.5v9.75A1.5 1.5 0 004.5 18h15a1.5 1.5 0 001.5-1.5V7.5a1.5 1.5 0 00-1.5-1.5z" />
+                                    </svg>
+                                    <span class="text-gray-500">Fichier manquant</span>
+                                </div>
+                            {% endif %}
+
+                            <div class="card-actions justify-end mt-4">
+                                <a href="{{ path('admin_typelivrable_parametrage', { id: livrable.id }) }}" class="btn btn-sm btn-secondary">Modifier</a>
+
+                                <form method="post"
+                                      action="{{ path('admin_livrable_delete', { id: livrable.id }) }}"
+                                      onsubmit="return confirm('Voulez-vous vraiment supprimer ce livrable ?');">
+                                    <input type="hidden" name="_token"
+                                           value="{{ csrf_token('delete' ~ livrable.id) }}">
+                                    <button class="btn btn-sm btn-error">Supprimer</button>
+                                </form>
                             </div>
-                        {% else %}
-                            <div class="flex items-center justify-center h-64 bg-gray-100 text-gray-400 rounded border">
-                                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 9.75h.008v.008H9.75V9.75zM14.25 9.75h.008v.008H14.25V9.75zM12 15.75c1.5 0 2.25-.75 3-1.5m1.5-7.5h-12a1.5 1.5 0 00-1.5 1.5v9.75A1.5 1.5 0 004.5 18h15a1.5 1.5 0 001.5-1.5V7.5a1.5 1.5 0 00-1.5-1.5z" />
-                                </svg>
-                                <span class="ml-2">Fichier manquant</span>
-                            </div>
-                        {% endif %}
-                    </a>
+                        </div>
+                    </div>
                 {% endfor %}
-
             </div>
         {% else %}
-            <div class="text-center mt-16 text-gray-500">
-                <svg class="mx-auto h-16 w-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="flex flex-col items-center justify-center h-64 text-gray-500">
+                <svg class="w-16 h-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 9.75h.008v.008H9.75V9.75zM14.25 9.75h.008v.008H14.25V9.75zM12 15.75c1.5 0 2.25-.75 3-1.5m1.5-7.5h-12a1.5 1.5 0 00-1.5 1.5v9.75A1.5 1.5 0 004.5 18h15a1.5 1.5 0 001.5-1.5V7.5a1.5 1.5 0 00-1.5-1.5z" />
                 </svg>
-                <p class="mt-4 text-lg font-medium">Aucun livrable trouvé.</p>
-                <p class="text-sm text-gray-400">Ajoutez votre premier livrable pour commencer.</p>
+                <p class="text-lg font-medium">Aucun livrable trouvé.</p>
+                <p class="text-sm">Ajoutez votre premier livrable pour commencer.</p>
             </div>
         {% endif %}
     </div>

@@ -279,7 +279,8 @@ final class AdminController extends AbstractController
         }
     }
 
-    #[Route('/admin/livrable', name: 'admin_gestion_livrable')]
+    #[Route('/admin/livrable', name: 'admin_gestion_livrable', methods: ["GET"])]
+    #[IsGranted('ROLE_ADMIN')]
     public function gestionLivrable(TypeLivrableRepository $repo): Response
     {
         $typeLivrables = $repo->findAll();
@@ -293,4 +294,30 @@ final class AdminController extends AbstractController
             'ListLivrable' => $typeLivrables,
         ]);
     }
+
+    #[Route('/admin/livrable/{id}/delete', name: 'admin_livrable_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(
+        int $id,
+        Request $request,
+        TypeLivrableRepository $repo,
+        EntityManagerInterface $em
+    ): Response {
+        $livrable = $repo->find($id);
+        if (!$livrable) {
+            throw $this->createNotFoundException('Livrable introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('delete'.$livrable->getId(), $request->request->get('_token'))) {
+            $this->addFlash('warning', 'Token CSRF invalide, suppression annulée.');
+            return $this->redirectToRoute('admin_gestion_livrable');
+        }
+
+        $em->remove($livrable);
+        $em->flush();
+
+        $this->addFlash('success', 'Livrable supprimé avec succès.');
+        return $this->redirectToRoute('admin_gestion_livrable');
+    }
+
 }
