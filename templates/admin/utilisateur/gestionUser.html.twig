@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Utilisateurs
+{% endblock %}
+
+{% block body %}
+	<div class="container mx-auto">
+		<div class="flex justify-center items-center m-6">
+			<h1 class="text-3xl font-bold">Gestion des Utilisateurs</h1>
+			<!-- Trigger Add User Dialog -->
+		</div>
+        <div class="flex justify-center items-center m-5">
+			<button class="btn btn-primary" onclick="openUserDialog('add', null)"><i class="fas fa-plus"></i> Ajouter un Utilisateur</button>
+        </div>
+		<!-- Search bar -->
+		<div class="pt-4">
+			<input type="text" placeholder="Rechercher..." id="userSearch" class="input input-bordered w-full max-w-md"/>
+		</div>
+
+		<!-- Users table -->
+		<div class="overflow-x-auto">
+			<table class="table table-zebra w-full">
+				<thead>
+					<tr>
+						<th>Email</th>
+						<th>Rôles</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="userTable">
+					{% for user in ListUser %}
+						<tr id="user-{{ user.id }}">
+							<td>{{ user.email }}</td>
+							<td>
+								{% for role in user.roles %}
+									<span class="badge badge-outline ml-1">{{ role }}</span>
+								{% endfor %}
+							</td>
+							<td>
+								<div class="flex space-x-2">
+									<!-- Trigger Edit User Dialog -->
+									{% if user.id != app.user.id %}
+										<button class="btn btn-sm btn-info" onclick="openUserDialog('edit', {{ user.id }})"><i class="fas fa-edit"></i></button>
+										<form method="post" action="{{ path('admin_user_delete', {'id': user.id}) }}" onsubmit="return confirm('Êtes-vous sûr ?');">
+											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}"/>
+											<button type="submit" class="btn btn-sm btn-error">
+												<i class="fas fa-trash"></i> 
+											</button>
+										</form>
+									{% else %}
+										<span class="text-gray-500 italic">Actions non disponibles</span>
+									{% endif %}
+								</div>
+							</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="4" class="text-center">
+								Aucun utilisateur trouvé.
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<dialog id="modal-user" class="modal modal-bottom sm:modal-middle">
+		<div
+			class="modal-box relative bg-base-100 shadow-2xl rounded-2xl p-8 max-w-lg w-full overflow-hidden">
+			<!-- Close Button -->
+			<button type="button" class="btn btn-sm btn-circle btn-ghost absolute top-4 right-4" onclick="closeUserDialog()" aria-label="Close modal">
+				<i class="fas fa-xl fa-xmark"></i>
+			</button>
+
+			<div class="flex items-center space-x-3 mb-6">
+				<h3 id="modal-user-title" class="text-xl font-semibold text-gray-800"></h3>
+			</div>
+			<div id="user_form_container" class="space-y-4"></div>
+		</div>
+	</dialog>
+
+	{% block javascripts %}
+		{{ parent() }}
+		<script>
+			document.getElementById('userSearch').addEventListener('input', function (e) {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll('#userTable tr').forEach(row => {
+                    row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+                });
+            });
+
+            function openUserDialog(mode, userId) {
+                const url = (mode === 'add') ? '{{ path("admin_user_new") }}' : `/admin/users/${userId}/edit`;
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                    }).then(r => r.text()).then(html => { // inject only the fragment into the container
+                        document.getElementById('user_form_container').innerHTML = html;
+                        document.getElementById('modal-user').showModal();
+                });
+            }
+
+            function closeUserDialog() {
+                document.getElementById('modal-user').close();
+                document.getElementById('user_form_container').innerHTML = '';
+            }
+		</script>
+	{% endblock %}
+{% endblock %}

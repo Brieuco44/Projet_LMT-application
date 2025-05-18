@@ -1,0 +1,64 @@
+{# templates/admin/user_form.html.twig #}
+<form action="{{ is_edit ? path('admin_user_edit', {'id': user.id}) : path('admin_user_new') }}" method="POST">
+
+    <h3 class="text-2xl font-semibold mb-6">{{ dialogTitle }}</h3>
+    <div class="flex flex-col gap-3 w-full">
+        {{ form_start(formUser, {'attr': {'class': 'space-y-6'}}) }}
+        <div class=" w-full">
+            {{ form_label(formUser.email, null, {'label_attr': {'class': 'label'}}) }}
+            {{ form_widget(formUser.email, {'attr': {'class': 'input input-bordered w-full'}}) }}
+            {{ form_errors(formUser.email) }}
+        </div>
+        <div class="w-full">
+            <div class="flex flex-wrap ">
+                <label class="flex items-center space-x-2">
+                    {{ form_widget(formUser.admin, {'attr': {'class': 'checkbox checkbox-primary'}}) }}
+                    <span class="label-text">{{ formUser.admin.vars.label }}</span>
+                </label>
+            </div>
+            {{ form_errors(formUser.admin) }}
+        </div>
+        <div class="w-full">
+            {{ form_label(formUser.password, 'Mot de passe', {'label_attr': {'class': 'label'}}) }}
+            <div class="relative">
+                <div class="input-group w-full">
+                    {{ form_widget(formUser.password, {
+                        'attr': {
+                            'class': 'input input-bordered w-full pr-10',
+                            'placeholder': formUser.vars.required ? '••••••••' : 'Laissez vide pour ne pas changer'
+                        }
+                    }) }}
+                    <button type="button" class="btn btn-ghost absolute right-2 top-1/2 transform -translate-y-1/2" onclick="togglePassword()">
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            {{ form_help(formUser.password) }}
+            {{ form_errors(formUser.password) }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4">
+            <button type="button" class="btn btn-outline btn-error" onclick="closeUserDialog()">Annuler</button>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+
+        {{ form_end(formUser) }}
+    </div>
+</form>
+
+<script>
+    function togglePassword() {
+        const pwd = document.getElementById('{{ formUser.password.vars.id }}');
+        const icon = document.getElementById('eye-icon');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.953 9.953 0 012.223-3.507m5.653-2.61A9.969 9.969 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.957 9.957 0 01-4.293 5.778" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />';
+        } else {
+            pwd.type = 'password';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5-065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+        }
+    }
+</script>

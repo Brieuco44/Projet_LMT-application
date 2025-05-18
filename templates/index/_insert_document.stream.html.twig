@@ -3,6 +3,7 @@
 
 <turbo-stream action="prepend" target="tabresultsTableBody">
 	<template>
+		{% for document in documents %}
 		<tr id="document-row-{{ document.id }}">
 			{# Colonne “delete” avec une croix #}
 			<td class="px-1 text-center">
@@ -27,75 +28,54 @@
 					</button>
 				</form>
 			</td>
+			<tr>
+				<td>{{ document.nom }}</td>
+				<td class="text-center">
+					{% if document.statut is not null %}
+						{% if document.statut.id == 1 %}
+							<i class="fa-solid fa-lg fa-circle-check text-success"></i>
+						{% elseif document.statut.id == 2 %}
+							<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+						{% else %}
+							<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+						{% endif %}
 
-			{# Ensuite tes colonnes existantes #}
-			<td>{{ document.nom }}</td>
-			<td class="text-center">
-				{% if document.statut %}
-					{% set sid = document.statut.id %}
-					{% if sid == 1 %}
-						<i class="fa-solid fa-circle-check fa-lg text-success"></i>
-					{% elseif sid == 2 %}
-						<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
 					{% else %}
 						<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 					{% endif %}
 				{% else %}
 					<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 				{% endif %}
-			</td>
-			<td>{{ document.typeLivrable.nom }}</td>
-			<td class="whitespace-nowrap">
-				{% if document.statut %}
-					<button
-							class="btn btn-primary btn-sm{% if document.statut.id == 6 %} btn-disabled{% endif %}"
-							onclick="openVoirControlesModal({{ document.id }})"
-					>
-						<i class="fa-solid fa-magnifying-glass"></i>
-						Voir
-					</button>
-				{% endif %}
-			</td>
-		</tr>
+				</td>
+				<td>
+					{{ document.typeLivrable.nom }}
+				</td>
+				<td>
+					{% if document.statut is not null %}
+						<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
+							<i class="fa-solid fa-lg fa-magnifying-glass"></i>
+							Voir
+						</button>
+					{% endif %}
+				</td>
+			</tr>
+		{% endfor %}
 	</template>
 </turbo-stream>
 
-<turbo-stream action="append" target="alert">
-	<template>
-		<div
-				id="toast-success-{{ id }}"
-				class="toast toast-top toast-end"
-				data-toast-id="{{ id }}"
-		>
-			<div class="alert alert-success shadow-lg flex items-center text-white">
-				<i class="fa-solid fa-circle-check mr-2"></i>
-				<span class="flex-1">Document ajouté avec succès</span>
-
-				<div class="relative w-6 h-6">
-					<svg class="absolute inset-0 w-full h-full" viewBox="0 0 36 36">
-						<circle
-								class="timer-bg"
-								cx="18" cy="18" r="16"
-								stroke-width="4" fill="none"
-						/>
-						<circle
-								class="timer-fg"
-								cx="18" cy="18" r="16"
-								stroke-width="4" fill="none"
-								stroke-linecap="round"
-						/>
-					</svg>
-					<button
-							type="button"
-							onclick="removeToast('{{ id }}')"
-							aria-label="Fermer"
-							class="absolute inset-0 flex items-center justify-center p-0 m-0 leading-none"
-					>
-						<i class="fa-solid fa-xmark text-lg leading-none text-white"></i>
+{% for document in documents %}
+	<turbo-stream action="append" target="alert">
+		<template>
+			<div id="toast-success" class="toast-top toast-end toast">
+				<div class="alert alert-success shadow-lg">
+					<i class="fa-solid fa-circle-check"></i>
+					<span>Document {{document.nom}} ajouté avec succès</span>
+					<button class="btn btn-sm btn-circle btn-ghost" onclick="closeToast()">
+						<i class="fa-solid fa-xmark"></i>
 					</button>
 				</div>
-
 			</div>
-		</div>
-	</template>
-</turbo-stream>
+		</template>
+	</turbo-stream>
+{% endfor %}
+
