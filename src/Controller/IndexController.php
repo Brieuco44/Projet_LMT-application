@@ -5,11 +5,13 @@ namespace App\Controller;
 use GuzzleHttp\Client;
 use App\Entity\Document;
 use App\Form\DocumentType;
+use Symfony\UX\Turbo\TurboBundle;
+use App\Service\ComparaisonService;
 use App\Repository\ChampsRepository;
 use App\Repository\ControleRepository;
-use App\Service\ComparaisonService;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\UX\Turbo\Helper\TurboStream;
 use App\Repository\TypeLivrableRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,8 +20,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\UX\Turbo\Helper\TurboStream;
-use Symfony\UX\Turbo\TurboBundle;
 
 final class IndexController extends AbstractController
 {
@@ -57,6 +57,7 @@ final class IndexController extends AbstractController
         $formDocument->handleRequest($request);
         if ($formDocument->isSubmitted() && $formDocument->isValid()) {
             $typeLivrable = $formDocument->get('TypeLivrable')->getData();
+            $documents = [];
             /** @var UploadedFile[] $files */
             $files = $formDocument->get('files')->getData();
             foreach ($files as $file) {
@@ -96,20 +97,21 @@ final class IndexController extends AbstractController
                     $this->entityManager->persist($document);
                     $this->entityManager->flush();
                     $this->comparaisonService->compareDocuments($typeLivrable, $document->getId(), $dataOCR);
-                    if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
-                        $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-                        $formDocument = $this->createForm(DocumentType::class);
-
-                        return $this->render('index/_insert_document.stream.html.twig', [
-                            'document' => $document,
-                            'formDocument' => $formDocument->createView(),
-                        ]);
-                    }
+                    $documents[] = $document;
                 } else {
                     // Handle error
-                    dd((string)$response->getStatusCode(), $response->getBody()->getContents());
-                    $this->addFlash('error', 'Erreur lors de l\'upload du document.');
+                    return $this->render('index/_error.stream.html.twig', [
+                        'message' => 'Erreur lors de l\'envoi du fichier : ' . $file->getClientOriginalName(),
+                    ]);
                 }
+            }
+            if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+                $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                $formDocument = $this->createForm(DocumentType::class);
+
+                return $this->render('index/_insert_document.stream.html.twig', [
+                    'documents' => $documents,
+                ]);
             }
         }
         return $this->render('index/_formDocument.html.twig', [
