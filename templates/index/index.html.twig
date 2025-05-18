@@ -14,6 +14,7 @@
 			<table id="resultsTable" class="table">
 				<thead>
 					<tr>
+						<th></th>
 						<th>Nom du document</th>
 						<th>État</th>
 						<th>Type de document</th>
@@ -28,40 +29,57 @@
 					{% else %}
 						{% for document in documents %}
 							<tr id="document-row-{{ document.id }}">
+								{# Colonne “delete” avec une croix #}
+								<td class="px-1 text-center">
+									<form
+											method="post"
+											action="{{ path('delete_document', { id: document.id }) }}"
+											onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');"
+											data-turbo="true"
+											class="inline-block"
+									>
+										<input
+												type="hidden"
+												name="_token"
+												value="{{ csrf_token('delete_document_' ~ document.id) }}"
+										>
+										<button
+												type="submit"
+												class="btn btn-ghost btn-sm btn-circle text-error hover:bg-error/10 p-0"
+												title="Supprimer"
+										>
+											<i class="fa-solid fa-xmark"></i>
+										</button>
+									</form>
+								</td>
+
+								{# Ensuite tes colonnes existantes #}
 								<td>{{ document.nom }}</td>
 								<td class="text-center">
-									{% if document.statut is not null %}
-										{% if document.statut.id == 1 %}
-											<i class="fa-solid fa-lg fa-circle-check text-success"></i>
-										{% elseif document.statut.id == 2 %}
-											<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+									{% if document.statut %}
+										{% set sid = document.statut.id %}
+										{% if sid == 1 %}
+											<i class="fa-solid fa-circle-check fa-lg text-success"></i>
+										{% elseif sid == 2 %}
+											<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
 										{% else %}
-											<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+											<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 										{% endif %}
 									{% else %}
-										<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+										<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 									{% endif %}
 								</td>
-								<td>
-									{{ document.typeLivrable.nom }}
-								</td>
-								<td>
-									{% if document.statut is not null %}
-										<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
-											<i class="fa-solid fa-lg fa-magnifying-glass"></i>
+								<td>{{ document.typeLivrable.nom }}</td>
+								<td class="whitespace-nowrap">
+									{% if document.statut %}
+										<button
+												class="btn btn-primary btn-sm{% if document.statut.id == 6 %} btn-disabled{% endif %}"
+												onclick="openVoirControlesModal({{ document.id }})"
+										>
+											<i class="fa-solid fa-magnifying-glass"></i>
 											Voir
 										</button>
 									{% endif %}
-
-									<form method="post" action="{{ path('delete_document', { id: document.id }) }}"
-										  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');"
-										  data-turbo="true"
-										  class="d-inline">
-										<input type="hidden" name="_token" value="{{ csrf_token('delete_document_' ~ document.id) }}">
-										<button class="btn btn-danger ms-2">
-											<i class="fa-solid fa-lg fa-trash"></i> Supprimer
-										</button>
-									</form>
 								</td>
 							</tr>
 						{% endfor %}
@@ -108,5 +126,50 @@
 			}, timeout);
 		}
 
+		document.addEventListener("turbo:before-stream-render", (e) => {
+			// On remonte jusqu'au turbo-stream au cas où target serait le template
+			const streamEl = e.target.closest("turbo-stream");
+			if (!streamEl) return;
+
+			const action = streamEl.getAttribute("action");
+			if (action === "remove") {
+				// --- ANIMATION SLIDE-OUT ---
+				e.preventDefault();
+				const targetId = streamEl.getAttribute("target");
+				const row = document.getElementById(targetId);
+				if (!row) return;
+
+				row.classList.add("slide-out");
+				row.addEventListener("transitionend", () => row.remove(), { once: true });
+				return;
+			}
+
+			if (action === "append" || action === "prepend") {
+				// --- ANIMATION SLIDE-IN ---
+				e.preventDefault();
+				const tpl = streamEl.querySelector("template");
+				if (!tpl) return;
+
+				// clone the new row
+				const clone = document.importNode(tpl.content, true);
+				const newRow = clone.firstElementChild;
+				if (!newRow) return;
+
+				// état initial hors écran
+				newRow.classList.add("slide-in-start");
+
+				// insère
+				const container = document.getElementById(streamEl.getAttribute("target"));
+				if (!container) return;
+				if (action === "append") container.appendChild(newRow);
+				else container.insertBefore(newRow, container.firstChild);
+
+				// force reflow pour garantir la transition
+				void newRow.offsetWidth;
+
+				// on lance la transition
+				newRow.classList.add("slide-in");
+			}
+		});
 	</script>
 {% endblock %}
