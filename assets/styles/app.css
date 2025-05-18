@@ -80,3 +80,29 @@
 .slide-out {
   animation: slideOutShrink 0.5s ease-in forwards;
 }
+
+
+/* Fond gris du cercle */
+.timer-bg {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+/* Trait animé en blanc (ou autre) */
+.timer-fg {
+  stroke: white;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  animation: countdown 5s linear forwards;
+}
+
+/* Keyframes de 100 → 0 sur le dashoffset */
+@keyframes countdown {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 100;
+  }
+}
