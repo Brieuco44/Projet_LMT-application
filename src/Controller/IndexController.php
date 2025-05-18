@@ -152,7 +152,7 @@ final class IndexController extends AbstractController
             $docId = $document->getId();
 
             $this->entityManager->remove($document);
-            //$this->entityManager->flush();
+            $this->entityManager->flush();
 
             return $this->render('index/_delete_stream.html.twig', [
                 'id' => $docId,
