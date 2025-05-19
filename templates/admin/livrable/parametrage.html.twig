@@ -3,10 +3,6 @@
 {% block title %}Admin
 {% endblock %}
 
-{% block javascripts %}
-	{{ encore_entry_script_tags('pdf-editor') }}
-{% endblock %}
-
 {% set zonesJson = typeLivrable.zones|map(z => {
 	'id': z.id,
 	'page': z.page,
@@ -140,7 +136,10 @@
 			<turbo-frame id="champs_form" src="{{ url('admin_typelivrable_champs_form')}}?zone_id=null " loading="lazy"></turbo-frame>
 		</div>
 	</dialog>
-
+{% endblock %}
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('pdf-editor') }}
 	<script>
 		function openAddChampsModal(zoneId) {
 			const turboFrame = document.getElementById('champs_form');

@@ -29,7 +29,7 @@ class Document
     /**
      * @var Collection<int, Controle>
      */
-    #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'document')]
+    #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'document', cascade: ['remove'], orphanRemoval: true)]
     private Collection $controles;
 
     #[ORM\ManyToOne(inversedBy: 'Document')]

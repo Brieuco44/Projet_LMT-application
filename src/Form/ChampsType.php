@@ -25,12 +25,14 @@ class ChampsType extends AbstractType
             ])
             ->add('donneeERP', ChoiceType::class, [
                 'choices' => array_combine($headers, $headers),
+                'label' => 'Donnée ERP',
                 'placeholder' => 'Sélectionner une donnée ERP',
                 'required' => false,
             ])
             ->add('typeChamps', EntityType::class, [
                 'class'        => TypeChamps::class,
                 'choice_label' => 'nom',
+                'label' => 'Type de champ',
                 'choice_attr'  => fn(TypeChamps $tc) => ['data-nom' => $tc->getNom()],
             ])
             ->add('zone', EntityType::class, [

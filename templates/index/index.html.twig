@@ -102,6 +102,10 @@
 			<button>close</button>
 		</form>
 	</dialog>
+{% endblock %}
+{% block javascripts %}
+
+	{{ parent() }}
 	<script>
 		function openVoirControlesModal(documentID) {
 			const turboFrame = document.getElementById('affichageControles');

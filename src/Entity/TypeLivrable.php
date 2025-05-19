@@ -25,13 +25,13 @@ class TypeLivrable
     /**
      * @var Collection<int, Document>
      */
-    #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'typeLivrable')]
+    #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'typeLivrable', cascade: ['persist', 'remove'])]
     private Collection $documents;
 
     /**
      * @var Collection<int, Zone>
      */
-    #[ORM\OneToMany(targetEntity: Zone::class, mappedBy: 'typeLivrable')]
+    #[ORM\OneToMany(targetEntity: Zone::class, mappedBy: 'typeLivrable', cascade: ['persist', 'remove'])]
     private Collection $zones;
 
     public function __construct()

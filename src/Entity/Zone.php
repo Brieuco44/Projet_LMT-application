@@ -30,7 +30,7 @@ class Zone
     /**
      * @var Collection<int, Champs>
      */
-    #[ORM\OneToMany(targetEntity: Champs::class, mappedBy: 'zone')]
+    #[ORM\OneToMany(targetEntity: Champs::class, mappedBy: 'zone', cascade: ['persist', 'remove'])]
     private Collection $champs;
 
     public function __construct()
