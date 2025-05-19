@@ -1,5 +1,33 @@
 <turbo-stream action="remove" target="none-row"></turbo-stream>
 
+<turbo-stream action="replace" target="document-frame">
+	<template>
+		<turbo-frame id="document-frame" src="{{ url('document_form') }}" loading="lazy">
+			{{ form_start(formDocument, { 'attr': { 'data-turbo-frame': 'document-frame', 'enctype': 'multipart/form-data' }, action: path('document_upload') }) }}
+			<fieldset id="document-form-fields" class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 block">
+				<legend class="fieldset-legend">Ajouter des documents</legend>
+				<div class="flex flex-col gap-2">
+					{{ form_label(formDocument.TypeLivrable) }}
+					{{ form_widget(formDocument.TypeLivrable) }}
+
+					{{ form_label(formDocument.files) }}
+					{{ form_widget(formDocument.files)}}
+				</div>
+				<div class="text-center">
+					<button class="btn btn-success w-full btn-wide mt-4" type="submit">Analyser</button>
+				</div>
+			</fieldset>
+			{{ form_end(formDocument) }}
+			<fieldset id="document-analyse-fields" class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 hidden">
+				<legend class="fieldset-legend">Analyse des documents</legend>
+				<h3 class="text-lg font-bold">Analyse en cours...</h3>
+				<p class="py-4">Veuillez patienter.</p>
+				<progress class="progress progress-primary w-full"></progress>
+			</fieldset>
+		</turbo-frame>
+	</template>
+</turbo-stream>
+
 <turbo-stream action="prepend" target="tabresultsTableBody">
 	<template>
 		{% for document in documents %}
@@ -12,8 +40,6 @@
 						</button>
 					</form>
 				</td>
-			</tr>
-			<tr>
 				<td>{{ document.nom }}</td>
 				<td class="text-center">
 					{% if document.statut is not null %}
@@ -31,8 +57,8 @@
 				</td>
 				<td>
 					{% if document.statut is not null %}
-						<button class="btn btn-primary {% if document.statut.id == 6 %} btn-disabled {% endif %}" onclick="openVoirControlesModal({{ document.id }})">
-							<i class="fa-solid fa-lg fa-magnifying-glass"></i>
+						<button class="btn btn-primary btn-sm{% if document.statut.id == 6 %} btn-disabled{% endif %}" onclick="openVoirControlesModal({{ document.id }})">
+							<i class="fa-solid fa-magnifying-glass"></i>
 							Voir
 						</button>
 					{% endif %}
@@ -41,6 +67,7 @@
 		{% endfor %}
 	</template>
 </turbo-stream>
+
 {% for document in documents %}
 	<turbo-stream action="append" target="alert">
 		<template>

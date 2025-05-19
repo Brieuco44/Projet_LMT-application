@@ -114,6 +114,7 @@ final class IndexController extends AbstractController
 
                 return $this->render('index/_insert_document.stream.html.twig', [
                     'documents' => $documents,
+                    'formDocument' => $formDocument->createView(),
                 ]);
             }
         }

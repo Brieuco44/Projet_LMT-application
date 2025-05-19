@@ -1,14 +1,23 @@
 <turbo-frame id="document-frame">
 	{{ form_start(formDocument, { 'attr': { 'data-turbo-frame': 'document-frame', 'enctype': 'multipart/form-data' }, action: path('document_upload') }) }}
-	<fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+	<fieldset id="document-form-fields" class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 block">
 		<legend class="fieldset-legend">Ajouter des documents</legend>
+		<div class="flex flex-col gap-2">
 		{{ form_label(formDocument.TypeLivrable) }}
 		{{ form_widget(formDocument.TypeLivrable) }}
 
 		{{ form_label(formDocument.files) }}
 		{{ form_widget(formDocument.files)}}
-
-		<button class="btn btn-success mt-4" type="submit">Analyser</button>
+		</div>
+		<div class="text-center">
+			<button class="btn btn-success w-full btn-wide mt-4" type="submit">Analyser</button>
+		</div>
 	</fieldset>
 	{{ form_end(formDocument) }}
+	<fieldset id="document-analyse-fields" class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 hidden">
+		<legend class="fieldset-legend">Analyse des documents</legend>
+		<h3 class="text-lg font-bold">Analyse en cours...</h3>
+		<p class="py-4">Veuillez patienter.</p>
+		<progress class="progress progress-primary w-full"></progress>
+	</fieldset>
 </turbo-frame>
