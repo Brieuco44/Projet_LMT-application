@@ -34,6 +34,7 @@ class ComparaisonService
 
     public function compareDocuments(TypeLivrable $typeLivrable, int $idDocument, array $dataOCR): void
     {
+        $this->statutDoc = $this->conformeStatut;
         $dataERP = $this->getLigneExport($typeLivrable->getId(), $dataOCR);
         $document = $this->documentRepo->find($idDocument);
         $zones = $typeLivrable->getZones();
