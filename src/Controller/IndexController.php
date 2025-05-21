@@ -100,11 +100,11 @@ final class IndexController extends AbstractController
                     $documents[] = $document;
                 } else {
                     // Handle error
-                  if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
-                    $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
-                      return $this->render('index/_error.stream.html.twig', [
-                          'message' => 'Erreur lors de l\'envoi du fichier : ' . $file->getClientOriginalName(),
-                      ]);
+                    if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+                        $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                        return $this->render('index/_error.stream.html.twig', [
+                            'message' => 'Erreur lors de l\'envoi du fichier : ' . $file->getClientOriginalName(),
+                        ]);
                     }
                 }
             }
@@ -141,7 +141,6 @@ final class IndexController extends AbstractController
             'controles' => $controles ?? null,
             'document' => $document ?? null,
         ]);
-
     }
 
     #[Route('/document/delete/{id}', name: 'delete_document', methods: ['POST'])]
@@ -150,21 +149,19 @@ final class IndexController extends AbstractController
     {
         $document = $documentRepository->find($id);
 
-        if (
-            $document
-            && $this->isCsrfTokenValid('delete_document_' . $document->getId(), $request->request->get('_token'))
-        ) {
+        if ($document && $this->isCsrfTokenValid('delete_document_' . $document->getId(), $request->request->get('_token'))) {
             // On garde l'ID en variable avant le flush
             $docId = $document->getId();
 
             $this->entityManager->remove($document);
             $this->entityManager->flush();
-
-            return $this->render('index/_delete_stream.html.twig', [
-                'id' => $docId,
-            ], new Response('', 200, ['Content-Type' => 'text/vnd.turbo-stream.html']));
+            if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
+                $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
+                return $this->render('index/_delete_stream.html.twig', [
+                    'id' => $docId,
+                ]);
+            }
         }
-
         return new Response("Erreur lors de la suppression", 400);
     }
 }

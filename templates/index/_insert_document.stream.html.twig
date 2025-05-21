@@ -28,45 +28,45 @@
 	</template>
 </turbo-stream>
 
-<turbo-stream action="prepend" target="tabresultsTableBody">
-	<template>
-		{% for document in documents %}
-			<tr id="document-row-{{ document.id }}">
-				<td class="px-1 text-center">
-					<form method="post" action="{{ path('delete_document', { id: document.id }) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');" data-turbo="true" class="inline-block">
-						<input type="hidden" name="_token" value="{{ csrf_token('delete_document_' ~ document.id) }}">
-						<button type="submit" class="btn btn-ghost btn-sm btn-circle text-error hover:bg-error/10 p-0" title="Supprimer">
-							<i class="fa-solid fa-xmark"></i>
-						</button>
-					</form>
-				</td>
-				<td>{{ document.nom }}</td>
-				<td class="text-center">
-					{% if document.statut is not null %}
-						{% if document.statut.id == 1 %}
-							<i class="fa-solid fa-lg fa-circle-check text-success"></i>
-						{% elseif document.statut.id == 2 %}
-							<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
-						{% else %}
-							<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+{% for document in documents %}
+	<turbo-stream action="prepend" target="tabresultsTableBody">
+		<template>
+				<tr id="document-row-{{ document.id }}">
+					<td class="px-1 text-center">
+						<form method="post" action="{{ path('delete_document', { id: document.id }) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');" data-turbo="true" class="inline-block">
+							<input type="hidden" name="_token" value="{{ csrf_token('delete_document_' ~ document.id) }}">
+							<button type="submit" class="btn btn-ghost btn-sm btn-circle text-error hover:bg-error/10 p-0" title="Supprimer">
+								<i class="fa-solid fa-xmark"></i>
+							</button>
+						</form>
+					</td>
+					<td>{{ document.nom }}</td>
+					<td class="text-center">
+						{% if document.statut is not null %}
+							{% if document.statut.id == 1 %}
+								<i class="fa-solid fa-lg fa-circle-check text-success"></i>
+							{% elseif document.statut.id == 2 %}
+								<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+							{% else %}
+								<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+							{% endif %}
 						{% endif %}
-					{% endif %}
-				</td>
-				<td>
-					{{ document.typeLivrable.nom }}
-				</td>
-				<td>
-					{% if document.statut is not null %}
-						<button class="btn btn-primary btn-sm{% if document.statut.id == 6 %} btn-disabled{% endif %}" onclick="openVoirControlesModal({{ document.id }})">
-							<i class="fa-solid fa-magnifying-glass"></i>
-							Voir
-						</button>
-					{% endif %}
-				</td>
-			</tr>
-		{% endfor %}
-	</template>
-</turbo-stream>
+					</td>
+					<td>
+						{{ document.typeLivrable.nom }}
+					</td>
+					<td>
+						{% if document.statut is not null %}
+							<button class="btn btn-primary btn-sm{% if document.statut.id == 6 %} btn-disabled{% endif %}" onclick="openVoirControlesModal({{ document.id }})">
+								<i class="fa-solid fa-magnifying-glass"></i>
+								Voir
+							</button>
+						{% endif %}
+					</td>
+				</tr>
+		</template>
+	</turbo-stream>
+{% endfor %}
 
 {% for document in documents %}
 	<turbo-stream action="append" target="alert">
