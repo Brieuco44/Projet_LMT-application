@@ -43,13 +43,15 @@
 					<td>{{ document.nom }}</td>
 					<td class="text-center">
 						{% if document.statut is not null %}
-							{% if document.statut.id == 1 %}
-								<i class="fa-solid fa-lg fa-circle-check text-success"></i>
-							{% elseif document.statut.id == 2 %}
-								<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
-							{% else %}
-								<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
-							{% endif %}
+							<div class="tooltip" data-tip="{{ document.statut.libelle }}">
+								{% if document.statut.id == 1 %}
+									<i class="fa-solid fa-lg fa-circle-check text-success"></i>
+								{% elseif document.statut.id == 2 %}
+									<i class="fa-solid fa-lg fa-circle-exclamation text-warning"></i>
+								{% else %}
+									<i class="fa-solid fa-lg fa-circle-xmark text-error"></i>
+								{% endif %}
+							</div>
 						{% endif %}
 					</td>
 					<td>

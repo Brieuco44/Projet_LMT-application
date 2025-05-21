@@ -12,6 +12,7 @@ use App\Repository\UtilisateurRepository;
 use App\Service\ComparaisonService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TypeLivrableRepository;
+use App\Repository\ZoneRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +24,14 @@ use Symfony\UX\Turbo\TurboBundle;
 
 final class AdminController extends AbstractController
 {
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private TypeLivrableRepository $typeLivrableRepo,
+        private ComparaisonService $comparaisonService,
+        private ZoneRepository $zoneRepo,
+        private UtilisateurRepository $utilisateurRepo
+    ) {
+    }
     #[Route('/admin', name: 'app_admin',)]
     #[IsGranted('ROLE_ADMIN')]
     public function index(): Response
@@ -34,7 +43,7 @@ final class AdminController extends AbstractController
 
     #[Route('/admin/livrable/upload', name: 'app_ajoutLivrable')]
     #[IsGranted('ROLE_ADMIN')]
-    public function ajoutLivrable(Request $request, SluggerInterface $slugger, EntityManagerInterface $entityManager): Response
+    public function ajoutLivrable(Request $request, SluggerInterface $slugger): Response
     {
         $typelivrable = new TypeLivrable();
         $form = $this->createForm(TypeLivrableType::class, $typelivrable);
@@ -53,8 +62,8 @@ final class AdminController extends AbstractController
                     $typelivrable->setNom($form->get('nom')->getData());
                 }
 
-                $entityManager->persist($typelivrable);
-                $entityManager->flush();
+                $this->entityManager->persist($typelivrable);
+                $this->entityManager->flush();
 
                 return $this->redirectToRoute('admin_typelivrable_parametrage', [
                     'id' => $typelivrable->getId(),
@@ -72,7 +81,7 @@ final class AdminController extends AbstractController
 
     #[Route('/admin/livrable/{id}/parametrage', name: 'admin_typelivrable_parametrage')]
     #[IsGranted('ROLE_ADMIN')]
-    public function typelivrableParametrage(int $id, TypeLivrableRepository $repo, Request $request, EntityManagerInterface $entityManager): Response
+    public function typelivrableParametrage(int $id, TypeLivrableRepository $repo, Request $request): Response
     {
         $typeLivrable = $repo->find($id);
         if (!$typeLivrable) {
@@ -95,8 +104,8 @@ final class AdminController extends AbstractController
             $zone->setCoordonnees($decoded);
             $zone->setTypeLivrable($typeLivrable);
 
-            $entityManager->persist($zone);
-            $entityManager->flush();
+            $this->entityManager->persist($zone);
+            $this->entityManager->flush();
 
             if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
                 $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
@@ -114,32 +123,34 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/_formZone', name: 'admin_typelivrable_zone_form', methods: ['GET', 'POST'])]
-    public function formZone(Request $request, EntityManagerInterface $entityManager): Response
+    public function formZone(Request $request): Response
     {
         $formZone = $this->createForm(ZoneType::class);
         $formZone->handleRequest($request);
         if ($formZone->isSubmitted() && $formZone->isValid()) {
             $zone = $formZone->getData();
-            $entityManager->persist($zone);
-            $entityManager->flush();
+            $this->entityManager->persist($zone);
+            $this->entityManager->flush();
         }
         return $this->render('admin/livrable/_formZone.html.twig', [
             'formZone' => $formZone->createView(),
         ]);
     }
     #[Route('/_formChamps', name: 'admin_typelivrable_champs_form')]
-    public function formChamps(Request $request, EntityManagerInterface $entityManager, ComparaisonService $comparaisonService): Response
+    public function formChamps(Request $request): Response
     {
-        $headers = $comparaisonService->getExportHeaders() ?? [];
+        $headers = $this->comparaisonService->getExportHeaders() ?? [];
 
         $formChamps = $this->createForm(ChampsType::class, null, [
             'headers' => $headers,
+            'hasIdentifiant' => $this->typeLivrableRepo->hasIdentifiant($request->query->get('id')) ?? null,
+            'zone' => null,
         ]);
         $formChamps->handleRequest($request);
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
             $champs = $formChamps->getData();
-            $entityManager->persist($champs);
-            $entityManager->flush();
+            $this->entityManager->persist($champs);
+            $this->entityManager->flush();
         }
 
 
@@ -149,19 +160,23 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form', methods: ['GET'])]
-    public function champsForm(Request $request, EntityManagerInterface $em, ComparaisonService $comparaisonService): Response
+    public function champsForm(Request $request): Response
     {
         $zoneId = $request->query->get('zone_id');
-        $zone = $em->getRepository(Zone::class)->find($zoneId);
+        $zone = $this->zoneRepo->find($zoneId);
 
         $champs = new Champs();
         if ($zone) {
             $champs->setZone($zone);
+            $hasIdentifiant = $this->typeLivrableRepo->hasIdentifiant($zone->getTypeLivrable()->getId());
         }
 
-        $headers = $comparaisonService->getExportHeaders() ?? [];
+
+        $headers = $this->comparaisonService->getExportHeaders() ?? [];
         $formChamps = $this->createForm(ChampsType::class, null, [
+            'hasIdentifiant' => $hasIdentifiant ?? null,
             'headers' => $headers,
+            'zone' => $zone,
         ]);
 
         return $this->render('admin/livrable/_formChamps.html.twig', [
@@ -170,30 +185,32 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/livrable/champs/form', name: 'admin_typelivrable_champs_form_submit', methods: ['POST'])]
-    public function champsFormSubmit(Request $request, EntityManagerInterface $em, ComparaisonService $comparaisonService)
+    public function champsFormSubmit(Request $request)
     {
         $zoneId = $request->query->get('zone_id');
-        $zone = $em->getRepository(Zone::class)->find($zoneId);
+        $zone = $this->zoneRepo->find($zoneId);
 
         $champs = new Champs();
 
-        $headers = $comparaisonService->getExportHeaders() ?? [];
+        $headers = $this->comparaisonService->getExportHeaders() ?? [];
         $formChamps = $this->createForm(ChampsType::class, $champs,[
             'headers' => $headers,
+            'hasIdentifiant' => $this->typeLivrableRepo->hasIdentifiant($zone->getTypeLivrable()->getId()),
+            'zone' => $zone,
         ]);
 
         $formChamps->handleRequest($request);
 
         if ($formChamps->isSubmitted() && $formChamps->isValid()) {
             // si c'est Signature, on force question et donneeERP à ''
-            if ($champs->getTypeChamps()->getNom() === 'Signature') {
+            if ($champs->getTypeChamps()->getNom() === 'Signature' || $champs->getTypeChamps()->getNom() === 'Case cochée') {
                 $champs->setQuestion('');
                 $champs->setDonneeERP('');
             }
 
             $champs->setZone($zone); // Deplacé ici car champs écrasé sinon
-            $em->persist($champs);
-            $em->flush();
+            $this->entityManager->persist($champs);
+            $this->entityManager->flush();
 
             if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
                 $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
@@ -206,15 +223,15 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/livrable/champs/{id}/delete', name: 'admin_typelivrable_champs_delete', methods: ['DELETE'])]
-    public function deleteChamps(int $id, EntityManagerInterface $entityManager, Request $request)
+    public function deleteChamps(int $id, Request $request)
     {
-        $champs = $entityManager->getRepository(Champs::class)->find($id);
+        $champs = $this->entityManager->getRepository(Champs::class)->find($id);
 
         if (!$champs) {
             throw $this->createNotFoundException('Le champ demandé n\'existe pas.');
         }
-        $entityManager->remove($champs);
-        $entityManager->flush();
+        $this->entityManager->remove($champs);
+        $this->entityManager->flush();
         if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
             $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
             return $this->render('admin/livrable/_delete_champs.stream.html.twig', [
@@ -224,8 +241,8 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/livrable/zone/{id}/update', name: 'admin_typelivrable_zone_update', methods: ['POST'])]
-    public function updateZone(int $id, Request $request, EntityManagerInterface $entityManager) {
-        $zone = $entityManager->getRepository(Zone::class)->find($id);
+    public function updateZone(int $id, Request $request) {
+        $zone = $this->zoneRepo->find($id);
         if (!$zone) {
             throw $this->createNotFoundException('Zone introuvable.');
         }
@@ -246,7 +263,7 @@ final class AdminController extends AbstractController
             $zone->setPage((int)$data['page']);
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
             return $this->render('admin/livrable/_zone_updated.stream.html.twig', [
@@ -262,15 +279,15 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/livrable/zone/{id}/delete', name: 'admin_typelivrable_zone_delete', methods: ['DELETE'])]
-    public function deleteZone(int $id, EntityManagerInterface $entityManager, Request $request)
+    public function deleteZone(int $id, Request $request)
     {
-        $zone = $entityManager->getRepository(Zone::class)->find($id);
+        $zone = $this->zoneRepo->find($id);
 
         if (!$zone) {
             throw $this->createNotFoundException('La zone demandée n\'existe pas.');
         }
-        $entityManager->remove($zone);
-        $entityManager->flush();
+        $this->entityManager->remove($zone);
+        $this->entityManager->flush();
         if ($request->getPreferredFormat() === TurboBundle::STREAM_FORMAT) {
             $request->setRequestFormat(TurboBundle::STREAM_FORMAT);
             return $this->render('admin/livrable/_delete_zone.stream.html.twig', [

@@ -41,14 +41,16 @@
 								<td>{{ document.nom }}</td>
 								<td class="text-center">
 									{% if document.statut %}
-										{% set sid = document.statut.id %}
-										{% if sid == 1 %}
-											<i class="fa-solid fa-circle-check fa-lg text-success"></i>
-										{% elseif sid == 2 %}
-											<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
-										{% else %}
-											<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
-										{% endif %}
+										<div class="tooltip" data-tip="{{ document.statut.libelle }}">
+											{% set sid = document.statut.id %}
+											{% if sid == 1 %}
+												<i class="fa-solid fa-circle-check fa-lg text-success"></i>
+											{% elseif sid == 2 %}
+												<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
+											{% else %}
+												<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
+											{% endif %}
+										</div>
 									{% else %}
 										<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 									{% endif %}
