@@ -52,7 +52,7 @@ class ComparaisonService
                     } else {
                         switch ($champ->getTypeChamps()->getNom()) {
                             case 'Identifiant':
-                            case 'Text':
+                            case 'Texte':
                             case 'Num commande':
                                 $controle->setStatut($this->verifyText($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
                                 break;

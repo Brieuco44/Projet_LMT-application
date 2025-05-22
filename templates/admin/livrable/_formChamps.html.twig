@@ -46,21 +46,23 @@
 			const donneeInput = document.getElementById('{{ formChamps.donneeERP.vars.id }}');
 
 			function toggleFields() {
-			const nom = typeSelect.selectedOptions[0].dataset.nom;
-			const isSignature = nom === 'Signature';
+				const nom = typeSelect.selectedOptions[0].dataset.nom;
+				const isSignature = nom === 'Signature' || nom === 'Case cochée';
 
-			// Question
-			questionDiv.style.display = isSignature ? 'none' : '';
-			questionInput.disabled = isSignature;
-			if (isSignature) 
-			questionInput.value = '';
+				// Question
+				questionDiv.style.display = isSignature ? 'none' : '';
+				questionInput.disabled = isSignature;
+				if (isSignature) {
+					questionInput.value = '';
+				}
 
 
-			// Donnée ERP
-			donneeDiv.style.display = isSignature ? 'none' : '';
-			donneeInput.disabled = isSignature;
-			if (isSignature) 
-			donneeInput.value = '';
+				// Donnée ERP
+				donneeDiv.style.display = isSignature ? 'none' : '';
+				donneeInput.disabled = isSignature;
+				if (isSignature) {
+					donneeInput.value = '';
+				}
 
 			}
 
