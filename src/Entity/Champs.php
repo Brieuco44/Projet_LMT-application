@@ -27,7 +27,7 @@ class Champs
     /**
      * @var Collection<int, Controle>
      */
-    #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'champs')]
+    #[ORM\OneToMany(targetEntity: Controle::class, mappedBy: 'champs', cascade: ['remove'], orphanRemoval: true)]
     private Collection $controles;
 
     #[ORM\Column(length: 255)]

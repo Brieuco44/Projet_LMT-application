@@ -34,6 +34,7 @@ class ComparaisonService
 
     public function compareDocuments(TypeLivrable $typeLivrable, int $idDocument, array $dataOCR): void
     {
+        $this->statutDoc = $this->conformeStatut;
         $dataERP = $this->getLigneExport($typeLivrable->getId(), $dataOCR);
         $document = $this->documentRepo->find($idDocument);
         $zones = $typeLivrable->getZones();
@@ -51,7 +52,7 @@ class ComparaisonService
                     } else {
                         switch ($champ->getTypeChamps()->getNom()) {
                             case 'Identifiant':
-                            case 'Text':
+                            case 'Texte':
                             case 'Num commande':
                                 $controle->setStatut($this->verifyText($dataERP[$champ->getDonneeERP()], $dataOCR[$champ->getZone()->getLibelle()][$champ->getNom()]));
                                 break;

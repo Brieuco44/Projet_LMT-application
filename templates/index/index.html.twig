@@ -5,7 +5,7 @@
 	<div id="alert"></div>
 	<div class="flex justify-center">
 	<div id="test">
-		<turbo-frame id="document-frame" src="{{ url('document_form') }}" loading="lazy">
+		<turbo-frame id="document-frame" src="{{ url('document_form') }}" >
 			<div class="skeleton w-80 h-64"></div>
 		</turbo-frame>
 	</div>
@@ -33,7 +33,7 @@
 								<td class="px-1 text-center">
 									<form method="post" action="{{ path('delete_document', { id: document.id }) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');" data-turbo="true" class="inline-block">
 										<input type="hidden" name="_token" value="{{ csrf_token('delete_document_' ~ document.id) }}">
-										<button type="submit" class="btn btn-ghost btn-sm btn-circle text-error hover:bg-error/10 p-0" title="Supprimer">
+										<button type="submit" class="btn btn-ghost btn-sm btn-circle text-error" title="Supprimer">
 											<i class="fa-solid fa-xmark"></i>
 										</button>
 									</form>
@@ -41,14 +41,16 @@
 								<td>{{ document.nom }}</td>
 								<td class="text-center">
 									{% if document.statut %}
-										{% set sid = document.statut.id %}
-										{% if sid == 1 %}
-											<i class="fa-solid fa-circle-check fa-lg text-success"></i>
-										{% elseif sid == 2 %}
-											<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
-										{% else %}
-											<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
-										{% endif %}
+										<div class="tooltip" data-tip="{{ document.statut.libelle }}">
+											{% set sid = document.statut.id %}
+											{% if sid == 1 %}
+												<i class="fa-solid fa-circle-check fa-lg text-success"></i>
+											{% elseif sid == 2 %}
+												<i class="fa-solid fa-circle-exclamation fa-lg text-warning"></i>
+											{% else %}
+												<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
+											{% endif %}
+										</div>
 									{% else %}
 										<i class="fa-solid fa-circle-xmark fa-lg text-error"></i>
 									{% endif %}

@@ -20,13 +20,7 @@
 	<div
 		class="flex gap-4 mb-4">
 		<!-- Partie gauche : PDF + sélection -->
-		<div
-				id="pdf-editor"
-				class="w-1/3"
-				data-controller="pdf-editor"
-				data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}"
-				data-zones='{{ zonesJson|raw }}'  {# << here! #}
-		>
+		<div id="pdf-editor" class="w-1/3" data-controller="pdf-editor" data-pdf-editor-url-value="{{ asset('uploads/pdf/' ~ typeLivrable.path) }}" data-zones='{{ zonesJson|raw }}'>
 			<canvas id="pdf-editor-canvas" data-pdf-editor-target="canvas" class="w-full h-full block" style="cursor: default;"></canvas>
 			<div class="flex justify-center mt-2">
 				<div class="join">
@@ -70,11 +64,7 @@
 												<i class="fa-regular fa-trash-can"></i>Supprimer la zone
 											</button>
 										</form>
-										<button
-												class="btn btn-outline btn-secondary"
-												data-zone-id="{{ zone.id }}"
-												id="updateZone"
-										>
+										<button class="btn btn-outline btn-secondary" data-zone-id="{{ zone.id }}" id="updateZone">
 											<i class="fa-regular fa-pen-to-square"></i>
 											Modifier les coordonnées
 										</button>
@@ -95,7 +85,8 @@
 													<p>
 														<b>Données ERP :
 														</b>
-														{{ champs.donneeERP }}</p>
+														{{ champs.donneeERP }}
+													</p>
 													<form method="delete" action="{{ path('admin_typelivrable_champs_delete', { 'id': champs.id }) }}">
 														<button type="submit" class="btn btn-outline btn-error">
 															<i class="fa-regular fa-trash-can"></i>Supprimer le champs
@@ -116,8 +107,6 @@
 
 	<dialog id="modal-zone" class="modal">
 		<div class="modal-box">
-			{# TODO #}
-			{# <turbo-frame id="zone-modal-frame" src="{{ url('admin_typelivrable_zone_form')}}" loading="lazy" target="modal-zone"></turbo-frame> #}
 				<h3 class="text-lg font-bold"> Configuration de la zone</h3>
 			<p class="py-4">Veuillez configurer les paramètres de la zone ici.</p>
 			{{ form_start(formZone, { 'attr': {  } }) }}
@@ -147,22 +136,7 @@
 
 			// Afficher la modale
 			const modal = document.getElementById('modalChamps');
-				modal.showModal();
+			modal.showModal();
 		}
-
-		// Fermer la modal après la soumission du formulaire
-		document.addEventListener('turbo:submit-end', function (event) {
-			const modal = document.getElementById('modalChamps');
-			if (modal.open) {
-				modal.close(); // Ferme la modal
-			}
-		});
-
-		document.addEventListener('turbo:submit-end', function (event) {
-			const modal = document.getElementById('modal-zone');
-			if (modal.open) {
-				modal.close(); // Ferme la modal
-			}
-		});
 	</script>
 {% endblock %}
